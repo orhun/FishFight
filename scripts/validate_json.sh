@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Validates the JSON files using JSON Schema Draft-07.
 # https://json-schema.org/draft-07/json-schema-release-notes.html
 #
