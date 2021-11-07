@@ -57,8 +57,7 @@
     }
   },
   "collider_size": {
-    "x": 614,
-    "y": 24
+    "x": 614
   },
   "animation": {
     "texture": "cannon",
