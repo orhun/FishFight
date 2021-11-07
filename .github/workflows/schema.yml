@@ -23,17 +23,4 @@ jobs:
 
       - name: Validate files
         shell: bash
-        run: |
-          find . -name "*schema.json" -print0 | while read -rd $'\0' schema
-          do
-              echo "[~] Schema found: $schema"
-              if [[ $(basename "$schema") != "schema.json" ]]; then
-                  # validate a single JSON file
-                  ajv validate -s "$schema" -d "${schema//.schema/}"
-              else
-                  # validate multiple JSON files in the same directory
-                  find "$(dirname "$schema")" -maxdepth 1 \
-                      -name "*.json" -not -name "*schema.json" -print0 |
-                          xargs -0 -I {} ajv validate -s "$schema" -d {}
-              fi
-          done
+        run: ./scripts/validate_json.sh
