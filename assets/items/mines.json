@@ -15,7 +15,7 @@
     "type": "triggered_effect",
     "trigger": "all_except_ground",
     "size": {
-      "x": 36,
+      "x": 306,
       "y": 36
     },
     "activation_delay": 1.5,
