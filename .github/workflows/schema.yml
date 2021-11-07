@@ -30,6 +30,7 @@ jobs:
               if [[ $(basename "$schema") != "schema.json" ]]; then
                   ajv validate -s "$schema" -d "${schema//.schema/}"
               else
-                  find "$(dirname "$schema")" -name "*.json" -maxdepth 1 -exec ajv validate -s "$schema" -d {} \;
+                  find "$(dirname "$schema")" -maxdepth 1 -name "*.json" -not -name "*schema.json" \
+                      -exec ajv validate -s "$schema" -d {} \;
               fi
           done
