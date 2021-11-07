@@ -38,7 +38,7 @@
     "timed_trigger": 1.5,
     "effects": {
       "type": "circle_collider",
-      "radius": 64,
+      "radius": 640,
       "is_explosion": true,
       "particle_effect": "hit",
       "sound_effect": "explode"

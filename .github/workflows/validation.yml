@@ -8,7 +8,7 @@ on:
     paths:
       - "**.json"
 
-name: Schema validation
+name: Format validation check
 
 jobs:
   json-validation:
