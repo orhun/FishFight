@@ -23,4 +23,5 @@ jobs:
 
       - name: Validate files
         shell: bash
-        run: ./scripts/validate_json.sh
+        run: |
+          echo $(./scripts/validate_json.sh)
