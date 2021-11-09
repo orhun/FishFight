@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - main
+      - skip_md_test
     paths-ignore:
       - '**.md'
       - '**.json'
