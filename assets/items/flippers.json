@@ -1,0 +1,63 @@
+{
+  "id": "flippers",
+  "type": "equipped_item",
+  "sprite": {
+    "texture": "flippers"
+  },
+  "collider_size": {
+    "x": 38,
+    "y": 35
+  },
+  "effects": {
+    "id": "turtle_shell",
+    "events": "receive_damage",
+    "uses": 3,
+    "blocks_damage": true
+  },
+  "animation": {
+    "texture": "flippers_animation",
+    "animations": [
+      {
+        "id": "idle",
+        "row": 0,
+        "frames": 1,
+        "fps": 1,
+        "is_looping": true
+      },
+      {
+        "id": "move",
+        "row": 1,
+        "frames": 6,
+        "fps": 1,
+        "is_looping": true
+      },
+      {
+        "id": "jump",
+        "row": 2,
+        "frames": 1,
+        "fps": 1,
+        "is_looping": true
+      },
+      {
+        "id": "fall",
+        "row": 3,
+        "frames": 1,
+        "fps": 1,
+        "is_looping": true
+      },
+      {
+        "id": "crouch",
+        "row": 4,
+        "frames": 1,
+        "fps": 1,
+        "is_looping": true
+      }
+    ]
+  },
+  "mount_offset": {
+    "x": -32,
+    "y": 32
+  },
+  "is_dropped_on_death": true,
+  "is_network_ready": true
+}

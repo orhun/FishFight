@@ -247,6 +247,19 @@
     }
   },
   {
+    "id": "flippers",
+    "path": "textures/items/Flippers(38x35).png"
+  },
+  {
+    "id": "flippers_animation",
+    "path": "textures/items/FlippersAnimation(480x240).png",
+    "type": "spritesheet",
+    "sprite_size": {
+      "x": 80,
+      "y": 48
+    }
+  },
+  {
     "id": "galleon",
     "path": "textures/temp/Galleon(326x300).png"
   },
