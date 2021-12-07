@@ -1,10 +1,14 @@
 use std::collections::HashMap;
+use std::path::Path;
 
 use macroquad::prelude::*;
 
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+use super::Error;
 use crate::error::Result;
+use crate::text::ToStringHelper;
 
 pub fn is_false(val: &bool) -> bool {
     !*val
@@ -43,63 +47,66 @@ impl<T: Clone> From<OneOrMany<T>> for Vec<T> {
     }
 }
 
-// In the future we will more than likely have to support (de)serializing of multiple formats and
-// these functions will make the appropriate calls, based on extension.
-// For example, the general consensus is that we should replace JSON as the primary data format but
-// we will still need JSON support, to load Tiled maps, and so on...
-
-pub fn serialize_string<T>(extension: &str, value: &T) -> Result<String>
+/// Serialize a value into a string of JSON.
+/// Will return a `serde_json::Error` if a parsing error is encountered.
+pub fn serialize_json_string<T>(value: &T) -> std::result::Result<String, serde_json::Error>
 where
     T: Serialize,
 {
-    assert_eq!(
-        extension, "json",
-        "Serialize: Invalid extension '{}'. Only json is supported for now...",
-        extension
-    );
     let res = serde_json::to_string_pretty(value)?;
     Ok(res)
 }
 
-pub fn serialize_bytes<T>(extension: &str, value: &T) -> Result<Vec<u8>>
+/// Serialize a value into a slice of JSON.
+/// Will return a `serde_json::Error` if a parsing error is encountered.
+pub fn serialize_json_bytes<T>(value: &T) -> std::result::Result<Vec<u8>, serde_json::Error>
 where
     T: Serialize,
 {
-    assert_eq!(
-        extension, "json",
-        "Serialize: Invalid extension '{}'. Only json is supported for now...",
-        extension
-    );
     let res = serde_json::to_string_pretty(value)?;
     Ok(res.into_bytes())
 }
 
-pub fn deserialize_bytes<'a, T>(extension: &str, value: &'a [u8]) -> Result<T>
+/// Deserialize a slice of JSON into a value.
+/// Will return a `serde_json::Error` if a parsing error is encountered.
+pub fn deserialize_json_bytes<'a, T>(value: &'a [u8]) -> std::result::Result<T, serde_json::Error>
 where
     T: Deserialize<'a>,
 {
-    assert_eq!(
-        extension, "json",
-        "Deserialize: Invalid extension '{}'. Only json is supported for now...",
-        extension
-    );
     let res: T = serde_json::from_slice(value)?;
     Ok(res)
 }
 
-pub fn deserialize_string<'a, T>(extension: &str, value: &'a str) -> Result<T>
+/// Deserialize a string of JSON into a value.
+/// Will return a `serde_json::Error` if a parsing error is encountered.
+pub fn deserialize_json_string<'a, T>(value: &'a str) -> std::result::Result<T, serde_json::Error>
 where
     T: Deserialize<'a>,
 {
-    assert_eq!(
-        extension, "json",
-        "Deserialize: Invalid extension '{}'. Only json is supported for now...",
-        extension
-    );
     let res: T = serde_json::from_str(value)?;
     Ok(res)
 }
 
+/// Deserialize a JSON file into a value
+pub async fn deserialize_json_file<T, P: AsRef<Path>>(path: P) -> Result<T>
+where
+    T: DeserializeOwned,
+{
+    let path = path.as_ref();
+    let path_str = path.to_string_helper();
+
+    let bytes = load_file(&path_str).await?;
+    match serde_json::from_slice(&bytes) {
+        Err(err) => Err(Error::new(&path_str, err).into()),
+        Ok(res) => Ok(res),
+    }
+}
+
+/// This is used to allow values of different types for the same field in a JSON object.
+/// When an enum with only tuple-like variants, all with a single member each, is marked as untagged,
+/// serde will return the appropriate enum variant, depending on the type of the JSON value.
+/// Furthermore, you can use `GenericParam::Vec` and `GenericParam::HashMap` to allow members of
+/// different types in the same collection, in your JSON objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum GenericParam {

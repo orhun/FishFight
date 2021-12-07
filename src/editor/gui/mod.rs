@@ -153,10 +153,10 @@ impl EditorGui {
             }
         }
 
-        entries.push(ContextMenuEntry::action(
-            "Background",
-            EditorAction::OpenBackgroundPropertiesWindow,
-        ));
+        entries.append(&mut vec![
+            ContextMenuEntry::action("Add Layer", EditorAction::OpenCreateLayerWindow),
+            ContextMenuEntry::action("Background", EditorAction::OpenBackgroundPropertiesWindow),
+        ]);
 
         self.context_menu = Some(ContextMenu::new(position, &entries));
     }
@@ -254,12 +254,12 @@ impl EditorGui {
                         widgets::Group::new(hash!(id, "buttons"), button_area_size)
                             .position(button_area_position)
                             .ui(ui, |ui| {
-                                let mut button_position = Vec2::ZERO;
+                                let mut button_position = vec2(ELEMENT_MARGIN, 0.0);
 
                                 let buttons = window.get_buttons(map, &ctx);
 
                                 let button_cnt = buttons.len();
-                                let margins = (button_cnt - 1) as f32 * ELEMENT_MARGIN;
+                                let margins = button_cnt as f32 * ELEMENT_MARGIN;
                                 let width = ((size.x - margins) / button_cnt as f32)
                                     .clamp(WINDOW_BUTTON_MIN_WIDTH, WINDOW_BUTTON_MAX_WIDTH);
 
@@ -303,7 +303,10 @@ impl EditorGui {
                 close_editor_menu();
 
                 match menu_res.into_usize() {
-                    EDITOR_MENU_RESULT_NEW => todo!("implement new map menu entry"),
+                    EDITOR_MENU_RESULT_NEW => {
+                        let action = EditorAction::OpenCreateMapWindow;
+                        res = Some(action);
+                    }
                     EDITOR_MENU_RESULT_OPEN => {
                         let action = EditorAction::OpenLoadMapWindow;
                         res = Some(action);

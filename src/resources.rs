@@ -15,7 +15,7 @@ use crate::{
     error::{ErrorKind, Result},
     formaterr,
     items::ItemParams,
-    json::{self, deserialize_bytes},
+    json::{self, deserialize_json_file},
     map::Map,
 };
 
@@ -56,6 +56,8 @@ pub struct TextureMetadata {
     pub sprite_size: Option<UVec2>,
     #[serde(default = "json::default_filter_mode", with = "json::FilterModeDef")]
     pub filter_mode: FilterMode,
+    #[serde(default, skip)]
+    pub size: Vec2,
 }
 
 #[derive(Debug, Clone)]
@@ -68,6 +70,8 @@ pub struct TextureResource {
 pub struct ImageMetadata {
     pub id: String,
     pub path: String,
+    #[serde(default, skip)]
+    pub size: Vec2,
 }
 
 #[derive(Debug, Clone)]
@@ -138,15 +142,13 @@ impl Resources {
                 .join(Self::PARTICLE_EFFECTS_DIR)
                 .with_extension(Self::RESOURCE_FILES_EXTENSION);
 
-            let bytes = load_file(&particle_effects_file_path.to_string_helper()).await?;
             let metadata: Vec<ParticleEffectMetadata> =
-                deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?;
+                deserialize_json_file(&particle_effects_file_path).await?;
 
             for meta in metadata {
                 let file_path = assets_dir_path.join(&meta.path);
 
-                let bytes = load_file(&file_path.to_string_helper()).await?;
-                let cfg: EmitterConfig = serde_json::from_slice(&bytes)?;
+                let cfg: EmitterConfig = deserialize_json_file(&file_path).await?;
 
                 particle_effects.insert(meta.id, cfg);
             }
@@ -159,9 +161,7 @@ impl Resources {
                 .join(Self::SOUNDS_FILE)
                 .with_extension(Self::RESOURCE_FILES_EXTENSION);
 
-            let bytes = load_file(&sounds_file_path.to_string_helper()).await?;
-            let metadata: Vec<SoundMetadata> =
-                deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?;
+            let metadata: Vec<SoundMetadata> = deserialize_json_file(&sounds_file_path).await?;
 
             for meta in metadata {
                 let file_path = assets_dir_path.join(meta.path);
@@ -179,9 +179,7 @@ impl Resources {
                 .join(Self::MUSIC_FILE)
                 .with_extension(Self::RESOURCE_FILES_EXTENSION);
 
-            let bytes = load_file(&music_file_path.to_string_helper()).await?;
-            let metadata: Vec<SoundMetadata> =
-                deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?;
+            let metadata: Vec<SoundMetadata> = deserialize_json_file(&music_file_path).await?;
 
             for meta in metadata {
                 let file_path = assets_dir_path.join(meta.path);
@@ -199,9 +197,7 @@ impl Resources {
                 .join(Self::TEXTURES_FILE)
                 .with_extension(Self::RESOURCE_FILES_EXTENSION);
 
-            let bytes = load_file(&textures_file_path.to_string_helper()).await?;
-            let metadata: Vec<TextureMetadata> =
-                deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?;
+            let metadata: Vec<TextureMetadata> = deserialize_json_file(&textures_file_path).await?;
 
             for meta in metadata {
                 let file_path = assets_dir_path.join(&meta.path);
@@ -217,15 +213,17 @@ impl Resources {
                     Some(val)
                 };
 
+                let size = vec2(texture.width(), texture.height());
+
                 let key = meta.id.clone();
 
-                let res = TextureResource {
-                    texture,
-                    meta: TextureMetadata {
-                        sprite_size,
-                        ..meta
-                    },
+                let meta = TextureMetadata {
+                    sprite_size,
+                    size,
+                    ..meta
                 };
+
+                let res = TextureResource { texture, meta };
 
                 textures.insert(key, res);
             }
@@ -238,9 +236,7 @@ impl Resources {
                 .join(Self::IMAGES_FILE)
                 .with_extension(Self::RESOURCE_FILES_EXTENSION);
 
-            let bytes = load_file(&images_file_path.to_string_helper()).await?;
-            let metadata: Vec<ImageMetadata> =
-                deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?;
+            let metadata: Vec<ImageMetadata> = deserialize_json_file(&images_file_path).await?;
 
             for meta in metadata {
                 let file_path = assets_dir_path.join(&meta.path);
@@ -248,6 +244,11 @@ impl Resources {
                 let image = load_image(&file_path.to_string_helper()).await?;
 
                 let key = meta.id.clone();
+
+                let meta = ImageMetadata {
+                    size: vec2(image.width() as f32, image.height() as f32),
+                    ..meta
+                };
 
                 let res = ImageResource { image, meta };
 
@@ -262,9 +263,7 @@ impl Resources {
                 .join(Self::MAPS_FILE)
                 .with_extension(Self::RESOURCE_FILES_EXTENSION);
 
-            let bytes = load_file(&maps_file_path.to_string_helper()).await?;
-            let metadata: Vec<MapMetadata> =
-                deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?;
+            let metadata: Vec<MapMetadata> = deserialize_json_file(&maps_file_path).await?;
 
             for meta in metadata {
                 let map_path = assets_dir_path.join(&meta.path);
@@ -291,28 +290,23 @@ impl Resources {
                 .join(Self::ITEMS_FILE)
                 .with_extension(Self::RESOURCE_FILES_EXTENSION);
 
-            let bytes = load_file(&items_file_path.to_string_helper()).await?;
-            let item_paths: Vec<String> =
-                deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?;
+            let item_paths: Vec<String> = deserialize_json_file(&items_file_path).await?;
 
             for path in item_paths {
                 let path = assets_dir_path.join(&path);
 
-                let bytes = load_file(&path.to_string_helper()).await?;
-
-                let params: ItemParams = deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?;
+                let params: ItemParams = deserialize_json_file(&path).await?;
 
                 items.insert(params.id.clone(), params);
             }
         }
 
         let player_characters = {
-            let player_characters_file_path = assets_dir_path
+            let path = assets_dir_path
                 .join(Self::PLAYER_CHARACTERS_FILE)
                 .with_extension(Self::RESOURCE_FILES_EXTENSION);
 
-            let bytes = load_file(&player_characters_file_path.to_string_helper()).await?;
-            deserialize_bytes(Self::RESOURCE_FILES_EXTENSION, &bytes)?
+            deserialize_json_file(&path).await?
         };
 
         #[allow(clippy::inconsistent_struct_constructor)]

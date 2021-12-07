@@ -1,4 +1,4 @@
-use macroquad::prelude::*;
+use macroquad::{color, prelude::*};
 
 use super::{EditorAction, EditorContext, EditorTool, EditorToolParams};
 
@@ -15,7 +15,8 @@ pub struct EraserTool {
 impl EraserTool {
     pub fn new() -> Self {
         let params = EditorToolParams {
-            name: "Eraser Tool".to_string(),
+            name: "Erase Tiles".to_string(),
+            is_continuous: true,
             ..Default::default()
         };
 
@@ -29,22 +30,71 @@ impl EditorTool for EraserTool {
     }
 
     fn get_action(&mut self, map: &Map, ctx: &EditorContext) -> Option<EditorAction> {
+        let cursor_world_position = scene::find_node_by_type::<EditorCamera>()
+            .unwrap()
+            .to_world_space(ctx.cursor_position);
+
+        if map.contains(cursor_world_position) {
+            if let Some(layer_id) = &ctx.selected_layer {
+                let layer = map.layers.get(layer_id).unwrap();
+                let camera = scene::find_node_by_type::<EditorCamera>().unwrap();
+                let world_position = camera.to_world_space(ctx.cursor_position);
+
+                match layer.kind {
+                    MapLayerKind::TileLayer => {
+                        let coords = map.to_coords(world_position);
+
+                        return Some(EditorAction::RemoveTile {
+                            layer_id: layer_id.clone(),
+                            coords,
+                        });
+                    }
+                    MapLayerKind::ObjectLayer => {
+                        // TODO: Implement object layers
+                    }
+                }
+            }
+        }
+
+        None
+    }
+
+    fn is_available(&self, map: &Map, ctx: &EditorContext) -> bool {
         if let Some(layer_id) = &ctx.selected_layer {
             let layer = map.layers.get(layer_id).unwrap();
-            let camera = scene::find_node_by_type::<EditorCamera>().unwrap();
-            let world_position = camera.to_world_space(ctx.cursor_position);
+            return layer.kind == MapLayerKind::TileLayer;
+        }
 
-            match layer.kind {
-                MapLayerKind::TileLayer => {
-                    let coords = map.to_coords(world_position);
+        false
+    }
 
-                    return Some(EditorAction::RemoveTile {
-                        layer_id: layer_id.clone(),
-                        coords,
-                    });
-                }
-                MapLayerKind::ObjectLayer => {
-                    // TODO: Implement object layers
+    fn draw_cursor(&mut self, map: &Map, ctx: &EditorContext) -> Option<EditorAction> {
+        let cursor_world_position = scene::find_node_by_type::<EditorCamera>()
+            .unwrap()
+            .to_world_space(ctx.cursor_position);
+
+        if map.contains(cursor_world_position) {
+            if let Some(layer_id) = &ctx.selected_layer {
+                let layer = map.layers.get(layer_id).unwrap();
+
+                if layer.kind == MapLayerKind::TileLayer {
+                    let coords = map.to_coords(cursor_world_position);
+                    let position = map.to_position(coords);
+
+                    let outline_color = if layer.tiles[map.to_index(coords)].is_some() {
+                        color::YELLOW
+                    } else {
+                        color::RED
+                    };
+
+                    draw_rectangle_lines(
+                        position.x,
+                        position.y,
+                        map.tile_size.x,
+                        map.tile_size.y,
+                        2.0,
+                        outline_color,
+                    );
                 }
             }
         }

@@ -160,7 +160,7 @@ pub async fn show_main_menu() -> MainMenuResult {
                             return MainMenuResult::LocalGame(player_input.clone());
                         }
                         Menu::CANCEL_INDEX => {
-                            menu_state = MainMenuState::Root(build_editor_menu());
+                            menu_state = MainMenuState::Root(build_main_menu());
                         }
                         _ => {}
                     }
@@ -174,18 +174,18 @@ pub async fn show_main_menu() -> MainMenuResult {
                     match res.into_usize() {
                         EDITOR_OPTION_CREATE => {
                             return MainMenuResult::Editor {
-                                input_scheme: EditorInputScheme::Keyboard,
+                                input_scheme: EditorInputScheme::Mouse,
                                 is_new_map: true,
                             }
                         }
                         EDITOR_OPTION_LOAD => {
                             return MainMenuResult::Editor {
-                                input_scheme: EditorInputScheme::Keyboard,
+                                input_scheme: EditorInputScheme::Mouse,
                                 is_new_map: false,
                             }
                         }
                         Menu::CANCEL_INDEX => {
-                            menu_state = MainMenuState::Root(build_editor_menu());
+                            menu_state = MainMenuState::Root(build_main_menu());
                         }
                         _ => {}
                     }

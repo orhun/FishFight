@@ -7,6 +7,17 @@ high-level overview of its API for those who are interested in contributing to i
 
 ![Screenshot of the Fish Fight editor. The map area and layers toolbar are visible. Default textures for platforms occupy the map area.](./assets/editor.png)
 
+## Keyboard shortcuts
+
+- `ctrl + S` save
+- `ctrl + shift + S` save as
+- `ctrl + L` load
+- `ctrl + Z` undo
+- `ctrl + shift + Z` redo
+- `G` toggle grid
+- `ctrl + G` toggle object snap to grid
+- `P` toggle parallax depth
+
 ## Accessing the editor
 
 The editor can be accessed from the "Editor" tab on the main menu. Selecting this item by clicking on it, or using the right arrow key on your keyboard (or if you're using a gamepad: the "right button"), will present two options: "Create Map" and "Load Map".
@@ -39,3 +50,9 @@ As the name describes: provides a set of tools for editing layers in the map are
 
 - Tile placement
 - Eraser
+
+#### Creating a new map
+
+A new map can be created either by loading one of the core game maps and save a copy (save as) or by creating a brand new one.
+If you choose the latter, you can import the parallax backgrounds and tilesets from an existing map, by selecting `Open` from the in-editor menu (opened by pressing `esc`), selecting a map from the list and clicking `Import`.
+This will open a menu that let you select what tilesets you want to import and whether you want to import the background layers, as well.
