@@ -19,3 +19,5 @@
 - [Documentation](./documentation.md)
   - [Screen Shake](./docs/screenshake.md)
   - [Particles](./docs/particles.md)
+- [Releases](./docs/releases.md)
+  - [0.3](./09-12-2021.md)

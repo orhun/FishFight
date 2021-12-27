@@ -1,10 +1,74 @@
 [
   {
     "id": "default_tool_icon",
-    "path": "textures/editor_icons/no_icon.png",
+    "path": "textures/ui/editor_icons/no_icon.png",
     "sprite_size": {
       "x": 0,
       "y": 0
+    }
+  },
+  {
+    "id": "cursor_tool_icon",
+    "path": "textures/ui/editor_icons/Cursor.png",
+    "sprite_size": {
+      "x": 64,
+      "y": 64
+    }
+  },
+  {
+    "id": "eraser_tool_icon",
+    "path": "textures/ui/editor_icons/Eraser.png",
+    "sprite_size": {
+      "x": 64,
+      "y": 64
+    }
+  },
+  {
+    "id": "object_placement_tool_icon",
+    "path": "textures/ui/editor_icons/Object.png",
+    "sprite_size": {
+      "x": 64,
+      "y": 64
+    }
+  },
+  {
+    "id": "tile_placement_tool_icon",
+    "path": "textures/ui/editor_icons/Tile.png",
+    "sprite_size": {
+      "x": 64,
+      "y": 64
+    }
+  },
+  {
+    "id": "spawn_point_icon",
+    "path": "textures/ui/editor_icons/Pointer.png",
+    "sprite_size": {
+      "x": 38,
+      "y": 49
+    }
+  },
+  {
+    "id": "spawn_point_placement_tool_icon",
+    "path": "textures/ui/editor_icons/Pointer and Map.png",
+    "sprite_size": {
+      "x": 64,
+      "y": 64
+    }
+  },
+  {
+    "id": "visibility_icon",
+    "path": "textures/ui/editor_icons/visibility.png",
+    "sprite_size": {
+      "x": 512,
+      "y": 512
+    }
+  },
+  {
+    "id": "visibility_off_icon",
+    "path": "textures/ui/editor_icons/visibility_off.png",
+    "sprite_size": {
+      "x": 512,
+      "y": 512
     }
   },
   {
@@ -62,8 +126,8 @@
     "path": "textures/player/PlayerSharky(64x64).png",
     "type": "spritesheet",
     "sprite_size": {
-      "x": 64,
-      "y": 64
+      "x": 96,
+      "y": 80
     }
   },
   {
@@ -71,8 +135,8 @@
     "path": "textures/player/PlayerPescy(64x64).png",
     "type": "spritesheet",
     "sprite_size": {
-      "x": 64,
-      "y": 64
+      "x": 96,
+      "y": 80
     }
   },
   {
@@ -80,8 +144,8 @@
     "path": "textures/player/PlayerFishy(64x64).png",
     "type": "spritesheet",
     "sprite_size": {
-      "x": 64,
-      "y": 64
+      "x": 96,
+      "y": 80
     }
   },
   {
@@ -89,8 +153,8 @@
     "path": "textures/player/PlayerOrcy(64x64).png",
     "type": "spritesheet",
     "sprite_size": {
-      "x": 64,
-      "y": 64
+      "x": 96,
+      "y": 80
     }
   },
   {
@@ -158,11 +222,11 @@
   },
   {
     "id": "grenades",
-    "path": "textures/items/Grenades(32x48).png",
+    "path": "textures/items/Grenades(25x52).png",
     "type": "spritesheet",
     "sprite_size": {
-      "x": 32,
-      "y": 48
+      "x": 25,
+      "y": 52
     }
   },
   {
@@ -308,5 +372,9 @@
   {
     "id": "machine_gun_bullet",
     "path": "textures/items/MachineGunBullet(7x4).png"
+  },
+  {
+    "id": "small_explosions",
+    "path": "textures/explosions/Small.png"
   }
 ]

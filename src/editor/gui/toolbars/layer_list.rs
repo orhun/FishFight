@@ -7,6 +7,7 @@ use macroquad::{
 use crate::{
     gui::GuiResources,
     map::{Map, MapLayerKind},
+    Resources,
 };
 
 use super::{
@@ -63,29 +64,80 @@ impl ToolbarElement for LayerListElement {
                 ui.push_skin(&gui_resources.skins.list_box_selected);
             }
 
-            let button = widgets::Button::new("")
+            let layer_btn = widgets::Button::new("")
                 .size(entry_size)
                 .position(position)
                 .ui(ui);
 
-            ui.label(position, layer_id);
+            let label = if layer.kind == MapLayerKind::ObjectLayer {
+                format!("(O) {}", layer_id)
+            } else {
+                format!("(T) {}", layer_id)
+            };
 
-            if layer.kind == MapLayerKind::ObjectLayer {
-                let suffix = "(Obj)";
+            ui.label(position, &label);
 
-                let suffix_size = ui.calc_size(suffix);
-                let position = vec2(size.x - suffix_size.x - ELEMENT_MARGIN, position.y);
-
-                ui.label(position, suffix);
-            }
-
-            if button {
+            if layer_btn {
                 res = Some(EditorAction::SelectLayer(layer_id.clone()));
             }
 
             if is_selected {
                 ui.pop_skin();
             }
+
+            ui.push_skin(&gui_resources.skins.list_box_no_bg);
+
+            {
+                let texture = {
+                    let resources = storage::get::<Resources>();
+                    if layer.is_visible {
+                        resources.textures.get("visibility_icon").unwrap().texture
+                    } else {
+                        resources
+                            .textures
+                            .get("visibility_off_icon")
+                            .unwrap()
+                            .texture
+                    }
+                };
+
+                let btn_size = vec2(entry_size.y, entry_size.y);
+
+                let btn_position = vec2(position.x + entry_size.x - btn_size.x, position.y);
+
+                let visibility_btn = widgets::Button::new("")
+                    .size(btn_size)
+                    .position(btn_position)
+                    .ui(ui);
+
+                {
+                    let texture_size = {
+                        let height = entry_size.y - ELEMENT_MARGIN;
+                        vec2(height, height)
+                    };
+
+                    let half_margin = ELEMENT_MARGIN / 2.0;
+
+                    let texture_position =
+                        vec2(btn_position.x + half_margin, btn_position.y + half_margin);
+
+                    widgets::Texture::new(texture)
+                        .size(texture_size.x, texture_size.y)
+                        .position(texture_position)
+                        .ui(ui);
+                }
+
+                if visibility_btn {
+                    let action = EditorAction::UpdateLayer {
+                        id: layer_id.clone(),
+                        is_visible: !layer.is_visible,
+                    };
+
+                    res = Some(action);
+                }
+            }
+
+            ui.pop_skin();
 
             position.y += entry_size.y;
         }

@@ -17,8 +17,8 @@ impl TilePlacementTool {
     pub fn new() -> Self {
         let params = EditorToolParams {
             name: "Place Tiles".to_string(),
+            icon_texture_id: "tile_placement_tool_icon".to_string(),
             is_continuous: true,
-            ..Default::default()
         };
 
         TilePlacementTool { params }
@@ -132,6 +132,7 @@ impl ObjectPlacementTool {
     pub fn new() -> Self {
         let params = EditorToolParams {
             name: "Place Objects".to_string(),
+            icon_texture_id: "object_placement_tool_icon".to_string(),
             ..Default::default()
         };
 
@@ -189,5 +190,46 @@ impl EditorTool for ObjectPlacementTool {
         }
 
         false
+    }
+}
+
+pub struct SpawnPointPlacementTool {
+    params: EditorToolParams,
+}
+
+impl SpawnPointPlacementTool {
+    pub fn new() -> Self {
+        let params = EditorToolParams {
+            name: "Place Spawn Point".to_string(),
+            icon_texture_id: "spawn_point_placement_tool_icon".to_string(),
+            ..Default::default()
+        };
+
+        SpawnPointPlacementTool { params }
+    }
+}
+
+impl EditorTool for SpawnPointPlacementTool {
+    fn get_params(&self) -> &EditorToolParams {
+        &self.params
+    }
+
+    fn get_action(&mut self, _map: &Map, ctx: &EditorContext) -> Option<EditorAction> {
+        // TODO: Snap to grid
+
+        let cursor_world_position = scene::find_node_by_type::<EditorCamera>()
+            .unwrap()
+            .to_world_space(ctx.cursor_position);
+
+        let resources = storage::get::<Resources>();
+        let texture_res = resources.textures.get("spawn_point_icon").unwrap();
+        let offset = vec2(
+            texture_res.texture.width() / 2.0,
+            texture_res.texture.height(),
+        );
+
+        let action = EditorAction::CreateSpawnPoint(cursor_world_position - offset);
+
+        Some(action)
     }
 }

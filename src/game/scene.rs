@@ -48,12 +48,11 @@ pub fn create_game_scene(
     // Objects are cloned since Item constructor requires `GameWorld` in storage
     let mut map_objects = Vec::new();
     for layer in map.layers.values() {
-        if layer.kind == MapLayerKind::ObjectLayer {
+        if layer.is_visible && layer.kind == MapLayerKind::ObjectLayer {
             map_objects.append(&mut layer.objects.clone());
         }
     }
 
-    let mut spawn_points = Vec::new();
     let mut items = Vec::new();
 
     for object in map_objects {
@@ -68,9 +67,6 @@ pub fn create_game_scene(
                     println!("WARNING: Invalid environment object id '{}'", &object.id);
                 }
             }
-            MapObjectKind::SpawnPoint => {
-                spawn_points.push(object.position);
-            }
             MapObjectKind::Item => {
                 if let Some(params) = resources.items.get(&object.id).cloned() {
                     if params.is_network_ready || is_local_game {
@@ -83,7 +79,7 @@ pub fn create_game_scene(
         }
     }
 
-    storage::store(GameWorld::new(map, spawn_points));
+    storage::store(GameWorld::new(map));
 
     for (position, params) in items {
         scene::add_node(Item::new(position, params));
