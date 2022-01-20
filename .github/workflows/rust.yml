@@ -60,6 +60,12 @@ jobs:
         profile: ["", "--release"]
 
     steps:
+      - name: Install dependencies
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --allow-unauthenticated -y -qq \
+           libasound2-dev libgl1-mesa-dev libx11-dev libxi-dev
       - uses: actions/checkout@v2
       - name: Cache Cargo dependencies
         uses: actions/cache@v2
