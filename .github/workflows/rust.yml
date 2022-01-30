@@ -87,4 +87,4 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: ${{ matrix.profile }} --locked
+          args: ${{ matrix.profile }} --locked --target ${{ matrix.config.target }}
