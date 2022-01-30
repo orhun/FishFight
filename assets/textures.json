@@ -1,5 +1,41 @@
 [
   {
+    "id": "yellow_board_upper_lh_corner",
+    "path": "ui/Wood and Paper UI/Yellow Board/1.png"
+  },
+  {
+    "id": "yellow_board_top",
+    "path": "ui/Wood and Paper UI/Yellow Board/2.png"
+  },
+  {
+    "id": "yellow_board_upper_rh_corner",
+    "path": "ui/Wood and Paper UI/Yellow Board/3.png"
+  },
+  {
+    "id": "yellow_board_lh_side",
+    "path": "ui/Wood and Paper UI/Yellow Board/4.png"
+  },
+  {
+    "id": "yellow_board_bg",
+    "path": "ui/Wood and Paper UI/Yellow Board/5.png"
+  },
+  {
+    "id": "yellow_board_rh_side",
+    "path": "ui/Wood and Paper UI/Yellow Board/6.png"
+  },
+  {
+    "id": "yellow_board_lower_lh_corner",
+    "path": "ui/Wood and Paper UI/Yellow Board/7.png"
+  },
+  {
+    "id": "yellow_board_bottom",
+    "path": "ui/Wood and Paper UI/Yellow Board/8.png"
+  },
+  {
+    "id": "yellow_board_lower_rh_corner",
+    "path": "ui/Wood and Paper UI/Yellow Board/9.png"
+  },
+  {
     "id": "default_tool_icon",
     "path": "textures/ui/editor_icons/no_icon.png",
     "sprite_size": {
@@ -240,11 +276,11 @@
   },
   {
     "id": "kick_bomb",
-    "path": "textures/items/KickBomb(32x62).png",
+    "path": "textures/items/KickBomb(32x64).png",
     "type": "spritesheet",
     "sprite_size": {
       "x": 32,
-      "y": 48
+      "y": 64
     }
   },
   {
@@ -258,11 +294,11 @@
   },
   {
     "id": "mines",
-    "path": "textures/items/Mines(48x48).png",
+    "path": "textures/items/Mines(33x35).png",
     "type": "spritesheet",
     "sprite_size": {
-      "x": 48,
-      "y": 48
+      "x": 33,
+      "y": 35
     }
   },
   {

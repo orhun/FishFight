@@ -1,5 +1,6 @@
 use hecs::{Entity, World};
 use macroquad::audio::play_sound_once;
+use macroquad::color;
 
 use macroquad::experimental::collections::storage;
 use macroquad::prelude::*;
@@ -17,10 +18,23 @@ pub use triggered::{TriggeredEffectMetadata, TriggeredEffectTrigger};
 
 use crate::effects::active::projectiles::spawn_projectile;
 use crate::effects::active::triggered::{spawn_triggered_effect, TriggeredEffect};
-use crate::particles::ParticleEmitterParams;
-use crate::player::PlayerState;
+use crate::particles::ParticleEmitterMetadata;
+use crate::player::{on_player_damage, Player, PlayerState};
 use crate::{PhysicsBody, Transform};
 pub use projectiles::ProjectileKind;
+
+const COLLIDER_DEBUG_DRAW_TTL: f32 = 0.5;
+
+struct CircleCollider {
+    r: f32,
+    ttl_timer: f32,
+}
+
+struct RectCollider {
+    w: f32,
+    h: f32,
+    ttl_timer: f32,
+}
 
 pub fn spawn_active_effect(
     world: &mut World,
@@ -40,51 +54,39 @@ pub fn spawn_active_effect(
         play_sound_once(*sound);
     }
 
+    let mut damage = Vec::new();
+
     match *params.kind {
         ActiveEffectKind::CircleCollider {
             radius,
-            segment,
             is_explosion,
         } => {
             let circle = Circle::new(origin.x, origin.y, radius);
 
+            #[cfg(debug_assertions)]
+            {
+                world.spawn((
+                    Transform::new(origin, 0.0),
+                    CircleCollider {
+                        r: radius,
+                        ttl_timer: 0.0,
+                    },
+                ));
+            }
+
             for (e, (transform, body)) in world.query::<(&Transform, &PhysicsBody)>().iter() {
                 let other_rect = body.as_rect(transform.position);
                 if circle.overlaps_rect(&other_rect) {
-                    let mut is_hit = false;
-
-                    if let Some(mut segment) = segment {
-                        if is_facing_left {
-                            segment.x = -segment.x;
+                    if world.get_mut::<Player>(e).is_ok() {
+                        if is_explosion || e != owner {
+                            damage.push((owner, e))
                         }
-
-                        if segment.x == 1 {
-                            is_hit = other_rect.x + other_rect.w >= circle.point().x;
-                        } else if segment.x == -1 {
-                            is_hit = other_rect.x <= circle.point().x;
-                        }
-
-                        if segment.y == 1 {
-                            is_hit = is_hit && other_rect.y + other_rect.h <= circle.point().y;
-                        } else if segment.y == -1 {
-                            is_hit = is_hit && other_rect.y >= circle.point().y;
-                        }
-                    } else {
-                        is_hit = true;
-                    }
-
-                    if is_hit {
-                        if let Ok(mut state) = world.get_mut::<PlayerState>(e) {
-                            if is_explosion || e != owner {
-                                state.is_dead = true;
-                            }
-                        } else if is_explosion {
-                            if let Ok(mut effect) = world.get_mut::<TriggeredEffect>(e) {
-                                if effect.trigger.contains(&TriggeredEffectTrigger::Explosion) {
-                                    effect.is_triggered = true;
-                                    effect.triggered_by = Some(owner);
-                                    effect.should_override_delay = true;
-                                }
+                    } else if is_explosion {
+                        if let Ok(mut effect) = world.get_mut::<TriggeredEffect>(e) {
+                            if effect.trigger.contains(&TriggeredEffectTrigger::Explosion) {
+                                effect.is_triggered = true;
+                                effect.triggered_by = Some(owner);
+                                effect.should_override_delay = true;
                             }
                         }
                     }
@@ -97,21 +99,31 @@ pub fn spawn_active_effect(
                 rect.x -= rect.w;
             }
 
-            for (e, (transform, body)) in world.query::<(&Transform, &PhysicsBody)>().iter() {
-                let other_rect = body.as_rect(transform.position);
-                if rect.overlaps(&other_rect) {
-                    if let Ok(mut state) = world.get_mut::<PlayerState>(e) {
-                        state.is_dead = true;
+            #[cfg(debug_assertions)]
+            {
+                world.spawn((
+                    Transform::new(origin, 0.0),
+                    RectCollider {
+                        w: rect.w,
+                        h: rect.h,
+                        ttl_timer: 0.0,
+                    },
+                ));
+            }
+
+            for (e, (_, transform, body)) in
+                world.query::<(&Player, &Transform, &PhysicsBody)>().iter()
+            {
+                if owner != e {
+                    let other_rect = body.as_rect(transform.position);
+                    if rect.overlaps(&other_rect) {
+                        damage.push((owner, e));
                     }
                 }
             }
         }
-        ActiveEffectKind::TriggeredEffect { mut params } => {
-            if is_facing_left {
-                params.velocity.x = -params.velocity.x;
-            }
-
-            spawn_triggered_effect(world, owner, origin, is_facing_left, *params)?;
+        ActiveEffectKind::TriggeredEffect { meta } => {
+            spawn_triggered_effect(world, owner, origin, is_facing_left, *meta)?;
         }
         ActiveEffectKind::Projectile {
             kind,
@@ -136,6 +148,10 @@ pub fn spawn_active_effect(
 
             spawn_projectile(world, owner, kind, origin, velocity, range, particles);
         }
+    }
+
+    for (damage_from_entity, damage_to_entity) in damage.drain(0..) {
+        on_player_damage(world, damage_from_entity, damage_to_entity);
     }
 
     Ok(())
@@ -173,20 +189,8 @@ pub struct ActiveEffectMetadata {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ActiveEffectKind {
     /// Check for hits with a `Circle` collider.
-    /// Can select a segment of the circle by setting `segment`. This can be either a quarter or a
-    /// half of the circle, selected by setting `x` and `y` of `segment`.
-    /// If `x` is one and `y` is zero, the forward-facing half of the circle will be used, if `x` is
-    /// one and `y` is negative one, the upper forward-facing quarter of the circle will be used,
-    /// if `x` is negative one and `y` is one, the lower backward-facing quarter of the circle will
-    /// be used, and so on.
     CircleCollider {
         radius: f32,
-        #[serde(
-            default,
-            with = "json::ivec2_opt",
-            skip_serializing_if = "Option::is_none"
-        )]
-        segment: Option<IVec2>,
         #[serde(default, skip_serializing_if = "json::is_false")]
         is_explosion: bool,
     },
@@ -195,7 +199,7 @@ pub enum ActiveEffectKind {
     /// Spawn a trigger that will set of another effect if its trigger conditions are met.
     TriggeredEffect {
         #[serde(flatten)]
-        params: Box<TriggeredEffectMetadata>,
+        meta: Box<TriggeredEffectMetadata>,
     },
     /// Spawn a projectile.
     /// This would typically be used for things like a gun.
@@ -208,6 +212,49 @@ pub enum ActiveEffectKind {
         spread: f32,
         /// Particle effects that will be attached to the projectile
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        particles: Vec<ParticleEmitterParams>,
+        particles: Vec<ParticleEmitterMetadata>,
     },
+}
+
+pub fn debug_draw_active_effects(world: &mut World) {
+    let mut to_remove = Vec::new();
+
+    let dt = get_frame_time();
+
+    for (e, (transform, collider)) in world.query_mut::<(&Transform, &mut CircleCollider)>() {
+        collider.ttl_timer += dt;
+
+        draw_circle_lines(
+            transform.position.x,
+            transform.position.y,
+            collider.r,
+            2.0,
+            color::RED,
+        );
+
+        if collider.ttl_timer >= COLLIDER_DEBUG_DRAW_TTL {
+            to_remove.push(e);
+        }
+    }
+
+    for (e, (transform, collider)) in world.query_mut::<(&Transform, &mut RectCollider)>() {
+        collider.ttl_timer += dt;
+
+        draw_rectangle_lines(
+            transform.position.x,
+            transform.position.y,
+            collider.w,
+            collider.h,
+            2.0,
+            color::RED,
+        );
+
+        if collider.ttl_timer >= COLLIDER_DEBUG_DRAW_TTL {
+            to_remove.push(e);
+        }
+    }
+
+    for e in to_remove.drain(0..) {
+        world.despawn(e).unwrap();
+    }
 }

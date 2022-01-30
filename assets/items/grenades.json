@@ -1,5 +1,6 @@
 {
   "id": "grenades",
+  "name": "Grenades",
   "type": "weapon",
   "cooldown": 0.5,
   "uses": 3,
@@ -10,13 +11,14 @@
       "trigger": [],
       "velocity": {
         "x": 6.0,
-        "y": -4.0
+        "y": -5.0
       },
       "can_rotate": true,
       "size": {
-        "x": 24,
-        "y": 24
+        "x": 17,
+        "y": 17
       },
+      "collide_with_platforms": true,
       "timed_trigger": 1.5,
       "effects": [
         {
@@ -34,6 +36,7 @@
           "timed_trigger": 0.7,
           "sprite": {
             "texture": "explosion_small",
+            "autoplay_id": "effect",
             "animations": [
               {
                 "id": "effect",
@@ -47,6 +50,7 @@
       ],
       "sprite": {
         "texture": "grenades",
+        "autoplay_id": "effect",
         "animations": [
           {
             "id": "effect",
@@ -85,6 +89,7 @@
   },
   "sprite": {
     "texture": "grenades",
+    "autoplay_id": "idle",
     "animations": [
       {
         "id": "idle",

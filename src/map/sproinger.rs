@@ -5,8 +5,10 @@ use macroquad::prelude::*;
 use hecs::{Entity, World};
 
 use crate::{
-    AnimatedSprite, Animation, PhysicsBody, QueuedAnimationAction, Resources, Result, Transform,
+    Animation, Drawable, PhysicsBody, QueuedAnimationAction, Resources, Result, Transform,
 };
+
+const SPROINGER_DRAW_ORDER: u32 = 2;
 
 const TEXTURE_ID: &str = "sproinger";
 
@@ -37,13 +39,6 @@ impl Sproinger {
 }
 
 pub fn spawn_sproinger(world: &mut World, position: Vec2) -> Result<Entity> {
-    let texture_res = {
-        let resources = storage::get::<Resources>();
-        resources.textures.get(TEXTURE_ID).cloned().unwrap()
-    };
-
-    let frame_size = texture_res.frame_size();
-
     let animations = &[
         Animation {
             id: IDLE_ANIMATION_ID.to_string(),
@@ -71,9 +66,9 @@ pub fn spawn_sproinger(world: &mut World, position: Vec2) -> Result<Entity> {
     let entity = world.spawn((
         Sproinger::new(),
         Transform::from(position),
-        AnimatedSprite::new(
-            texture_res.texture,
-            frame_size,
+        Drawable::new_animated_sprite(
+            SPROINGER_DRAW_ORDER,
+            TEXTURE_ID,
             animations,
             Default::default(),
         ),
@@ -99,8 +94,8 @@ pub fn update_sproingers(world: &mut World) {
 
     let mut to_be_sproinged = Vec::new();
 
-    'sproingers: for (_, (sproinger, transform, sprite)) in
-        world.query_mut::<(&mut Sproinger, &Transform, &mut AnimatedSprite)>()
+    'sproingers: for (_, (sproinger, transform, drawable)) in
+        world.query_mut::<(&mut Sproinger, &Transform, &mut Drawable)>()
     {
         sproinger.cooldown_timer += dt;
 
@@ -110,6 +105,7 @@ pub fn update_sproingers(world: &mut World) {
         };
 
         if sproinger.cooldown_timer >= COOLDOWN {
+            let sprite = drawable.get_animated_sprite_mut().unwrap();
             sprite.set_animation(IDLE_ANIMATION_ID, true);
 
             let position = transform.position - (sprite.frame_size / 2.0);

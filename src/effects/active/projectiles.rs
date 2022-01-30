@@ -9,13 +9,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::effects::active::triggered::TriggeredEffect;
 use crate::effects::TriggeredEffectTrigger;
-use crate::json;
-use crate::particles::{ParticleEmitter, ParticleEmitterParams};
-use crate::player::PlayerState;
+use crate::particles::{ParticleEmitter, ParticleEmitterMetadata};
+use crate::player::{on_player_damage, PlayerState};
+use crate::{json, Drawable, SpriteParams};
 use crate::{
-    CollisionWorld, PhysicsBody, Resources, RigidBody, RigidBodyParams, Sprite, SpriteMetadata,
-    Transform,
+    CollisionWorld, PhysicsBody, Resources, RigidBody, RigidBodyParams, SpriteMetadata, Transform,
 };
+
+const PROJECTILE_DRAW_ORDER: u32 = 1;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -66,7 +67,7 @@ pub fn spawn_projectile(
     origin: Vec2,
     velocity: Vec2,
     range: f32,
-    particles: Vec<ParticleEmitterParams>,
+    particles: Vec<ParticleEmitterMetadata>,
 ) -> Entity {
     let entity = world.spawn((Projectile::new(owner, kind.clone(), origin, range),));
 
@@ -83,25 +84,25 @@ pub fn spawn_projectile(
             can_rotate: false,
             ..Default::default()
         },
-        ProjectileKind::Sprite { params, can_rotate } => {
+        ProjectileKind::Sprite {
+            params: meta,
+            can_rotate,
+        } => {
             let resources = storage::get::<Resources>();
-            let texture_res = resources.textures.get(&params.texture_id).unwrap();
+            let texture_res = resources.textures.get(&meta.texture_id).unwrap();
 
-            let size = params
+            let size = meta
                 .size
                 .unwrap_or_else(|| texture_res.meta.frame_size.unwrap_or(texture_res.meta.size));
 
-            let offset = params.offset - (vec2(size.x, size.y) / 2.0);
+            let offset = meta.offset - (vec2(size.x, size.y) / 2.0);
 
-            let meta = SpriteMetadata {
-                offset,
-                ..params.clone()
-            };
+            let is_flipped_x = velocity.x < 0.0;
 
             if can_rotate {
                 let mut direction = Vec2::ZERO;
 
-                if velocity.x < 0.0 {
+                if is_flipped_x {
                     direction.x = 1.0;
                 } else {
                     direction.x = -1.0;
@@ -109,12 +110,25 @@ pub fn spawn_projectile(
 
                 transform.rotation = (velocity.y - direction.y).atan2(velocity.x - direction.x);
 
-                if velocity.x < 0.0 {
+                if is_flipped_x {
                     transform.rotation += PI;
                 }
             }
 
-            world.insert_one(entity, Sprite::from(meta)).unwrap();
+            world
+                .insert_one(
+                    entity,
+                    Drawable::new_sprite(
+                        PROJECTILE_DRAW_ORDER,
+                        &meta.texture_id,
+                        SpriteParams {
+                            is_flipped_x,
+                            offset,
+                            ..meta.clone().into()
+                        },
+                    ),
+                )
+                .unwrap();
 
             RigidBodyParams {
                 offset,
@@ -204,19 +218,18 @@ pub fn update_projectiles(world: &mut World) {
         }
     }
 
-    for (owner_entity, projectile_entity, collision) in events {
+    for (damage_from_entity, projectile_entity, collision) in events {
         if let Some(collision_kind) = collision {
             match collision_kind {
-                ProjectileCollision::Player(player_entity) => {
-                    let mut state = world.get_mut::<PlayerState>(player_entity).unwrap();
-                    state.is_dead = true;
+                ProjectileCollision::Player(damage_to_entity) => {
+                    on_player_damage(world, damage_from_entity, damage_to_entity);
                 }
                 ProjectileCollision::Trigger(trigger_entity) => {
                     let mut effect = world.get_mut::<TriggeredEffect>(trigger_entity).unwrap();
                     if !effect.should_override_delay {
                         effect.is_triggered = true;
                         effect.should_override_delay = true;
-                        effect.triggered_by = Some(owner_entity);
+                        effect.triggered_by = Some(damage_from_entity);
                     }
                 }
                 _ => {}

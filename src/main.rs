@@ -3,7 +3,8 @@ use fishsticks::GamepadContext;
 use std::env;
 use std::path::PathBuf;
 
-use macroquad::{experimental::collections::storage, prelude::*};
+use macroquad::experimental::collections::storage;
+use macroquad::prelude::*;
 
 pub mod config;
 pub mod editor;
@@ -30,12 +31,12 @@ pub mod physics;
 pub mod player;
 
 mod channel;
-mod sprite;
+mod drawables;
 mod transform;
 
+pub use drawables::*;
 pub use input::*;
 pub use physics::*;
-pub use sprite::*;
 pub use transform::*;
 
 use editor::{Editor, EditorCamera, EditorInputScheme};
@@ -57,12 +58,14 @@ pub use game::{
 
 pub use resources::Resources;
 
-pub use player::PlayerEventParams;
+pub use player::PlayerEvent;
 
 pub use ecs::Owner;
 
+use crate::effects::passive::init_passive_effects;
 use crate::game::GameMode;
 use crate::network::Api;
+use crate::particles::Particles;
 use crate::resources::load_resources;
 pub use effects::{
     ActiveEffectKind, ActiveEffectMetadata, PassiveEffectInstance, PassiveEffectMetadata,
@@ -125,6 +128,13 @@ async fn main() -> Result<()> {
         let gamepad_system = fishsticks::GamepadContext::init().unwrap();
         storage::store(gamepad_system);
     }
+
+    {
+        let particles = Particles::new();
+        storage::store(particles);
+    }
+
+    init_passive_effects();
 
     'outer: loop {
         match gui::show_main_menu().await {
@@ -213,6 +223,7 @@ async fn main() -> Result<()> {
         }
 
         scene::clear();
+
         stop_music();
     }
 

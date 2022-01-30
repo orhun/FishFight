@@ -1,5 +1,6 @@
 {
   "id": "crate",
+  "name": "Crate",
   "type": "weapon",
   "uses": 1,
   "deplete_behavior": "destroy",
@@ -18,6 +19,7 @@
         "enemy",
         "ground"
       ],
+      "collide_with_platforms": true,
       "velocity": {
         "x": 5.0,
         "y": -2.5
@@ -48,6 +50,7 @@
   ],
   "sprite": {
     "texture": "crate",
+    "autoplay_id": "idle",
     "animations": [
       {
         "id": "idle",

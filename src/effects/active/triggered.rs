@@ -7,14 +7,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::effects::active::spawn_active_effect;
 use crate::math::deg_to_rad;
-use crate::particles::{ParticleEmitter, ParticleEmitterParams};
+use crate::particles::{ParticleEmitter, ParticleEmitterMetadata};
 use crate::player::PlayerState;
-use crate::{json, AnimatedSpriteParams, PhysicsBodyParams};
-use crate::{
-    ActiveEffectMetadata, AnimatedSprite, AnimatedSpriteMetadata, CollisionWorld, PhysicsBody,
-    Transform,
-};
-use crate::{Resources, Result};
+use crate::Result;
+use crate::{json, Drawable, PhysicsBodyParams};
+use crate::{ActiveEffectMetadata, AnimatedSpriteMetadata, CollisionWorld, PhysicsBody, Transform};
+
+const TRIGGERED_EFFECT_DRAW_ORDER: u32 = 5;
 
 /// The various collision types that can trigger a `TriggeredEffect`.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -64,7 +63,7 @@ impl TriggeredEffect {
             timed_trigger: meta.timed_trigger,
             is_kickable: meta.is_kickable,
             should_override_delay: false,
-            should_collide_with_platforms: false,
+            should_collide_with_platforms: meta.should_collide_with_platforms,
             is_triggered: false,
             triggered_by: None,
             kick_delay_timer: 0.0,
@@ -75,15 +74,18 @@ impl TriggeredEffect {
     }
 }
 
-const TRIGGERED_EFFECT_ANIMATION_ID: &str = "effect";
-
 pub fn spawn_triggered_effect(
     world: &mut World,
     owner: Entity,
     origin: Vec2,
-    _is_facing_left: bool,
+    is_facing_left: bool,
     meta: TriggeredEffectMetadata,
 ) -> Result<Entity> {
+    let mut velocity = meta.velocity;
+    if is_facing_left {
+        velocity.x = -velocity.x;
+    }
+
     let offset = -meta.size / 2.0;
 
     let actor = {
@@ -98,7 +100,7 @@ pub fn spawn_triggered_effect(
         Transform::new(origin, rotation),
         PhysicsBody::new(
             actor,
-            meta.velocity,
+            velocity,
             PhysicsBodyParams {
                 offset,
                 size: meta.size,
@@ -109,12 +111,6 @@ pub fn spawn_triggered_effect(
     ));
 
     if let Some(meta) = meta.sprite.clone() {
-        let (texture, frame_size) = storage::get::<Resources>()
-            .textures
-            .get(&meta.texture_id)
-            .map(|t| (t.texture, t.frame_size()))
-            .unwrap();
-
         let animations = meta
             .animations
             .clone()
@@ -122,15 +118,19 @@ pub fn spawn_triggered_effect(
             .map(|a| a.into())
             .collect::<Vec<_>>();
 
-        let mut params: AnimatedSpriteParams = meta.into();
+        let mut drawable = Drawable::new_animated_sprite(
+            TRIGGERED_EFFECT_DRAW_ORDER,
+            &meta.texture_id,
+            animations.as_slice(),
+            meta.clone().into(),
+        );
 
-        params.offset -= frame_size / 2.0;
+        {
+            let sprite = drawable.get_animated_sprite_mut().unwrap();
+            sprite.offset -= sprite.frame_size / 2.0;
+        }
 
-        let mut sprite = AnimatedSprite::new(texture, frame_size, animations.as_slice(), params);
-
-        sprite.set_animation(TRIGGERED_EFFECT_ANIMATION_ID, true);
-
-        world.insert_one(entity, sprite)?;
+        world.insert_one(entity, drawable)?;
     }
 
     if !meta.effects.is_empty() {
@@ -283,7 +283,7 @@ pub struct TriggeredEffectMetadata {
     pub effects: Vec<ActiveEffectMetadata>,
     /// Particle effects that will be attached to the trigger
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub particles: Vec<ParticleEmitterParams>,
+    pub particles: Vec<ParticleEmitterMetadata>,
     /// This specifies the size of the trigger.
     #[serde(with = "json::vec2_def")]
     pub size: Vec2,
@@ -321,7 +321,7 @@ pub struct TriggeredEffectMetadata {
     pub is_kickable: bool,
     /// If this is `true` the effect will collide with platforms. This will also trigger it on
     /// collisions with platforms, if `ground` is selected as one of the trigger criteria
-    #[serde(default)]
+    #[serde(default, rename = "collide_with_platforms")]
     pub should_collide_with_platforms: bool,
     /// If this is `true` the triggered physics body will rotate while in the air.
     #[serde(default)]

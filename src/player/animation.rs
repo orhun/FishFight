@@ -8,8 +8,8 @@ use crate::player::{
     PlayerState, CROUCH_ANIMATION_ID, DEATH_BACK_ANIMATION_ID, DEATH_FORWARD_ANIMATION_ID,
     FALL_ANIMATION_ID, IDLE_ANIMATION_ID, JUMP_ANIMATION_ID, MOVE_ANIMATION_ID, SLIDE_ANIMATION_ID,
 };
-use crate::{json, PhysicsBody};
-use crate::{AnimatedSpriteMetadata, AnimatedSpriteSet, AnimationMetadata};
+use crate::{json, Drawable, PhysicsBody};
+use crate::{AnimatedSpriteMetadata, AnimationMetadata};
 
 /// This is used in stead of `AnimationParams`, as we have different data requirements, in the case
 /// of a player character, compared to most other use cases. We want to have a default animation
@@ -46,7 +46,7 @@ impl From<PlayerAnimationMetadata> for AnimatedSpriteMetadata {
             pivot: other.pivot,
             tint: other.tint,
             animations: other.animations.into_vec(),
-            should_autoplay: true,
+            autoplay_id: Some(IDLE_ANIMATION_ID.to_string()),
             is_deactivated: false,
         }
     }
@@ -249,11 +249,13 @@ impl PlayerAnimations {
 }
 
 pub fn update_player_animations(world: &mut World) {
-    for (_, (state, body, sprites)) in
-        world.query_mut::<(&PlayerState, &PhysicsBody, &mut AnimatedSpriteSet)>()
+    for (_, (state, body, drawable)) in
+        world.query_mut::<(&PlayerState, &PhysicsBody, &mut Drawable)>()
     {
-        sprites.flip_all_x(state.is_facing_left);
-        sprites.flip_all_y(state.is_upside_down);
+        let sprite_set = drawable.get_animated_sprite_set_mut().unwrap();
+
+        sprite_set.flip_all_x(state.is_facing_left);
+        sprite_set.flip_all_y(state.is_upside_down);
 
         #[allow(clippy::if_same_then_else)]
         let animation_id = if state.is_dead {
@@ -281,6 +283,6 @@ pub fn update_player_animations(world: &mut World) {
             FALL_ANIMATION_ID
         };
 
-        sprites.set_all(animation_id, false);
+        sprite_set.set_all(animation_id, false);
     }
 }

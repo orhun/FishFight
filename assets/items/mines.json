@@ -1,5 +1,6 @@
 {
   "id": "mines",
+  "name": "Mines",
   "type": "weapon",
   "cooldown": 0.5,
   "uses": 3,
@@ -13,9 +14,15 @@
         "explosion",
         "projectile"
       ],
+      "can_rotate": true,
+      "rotation": 300.0,
+      "velocity": {
+        "x": 2.0,
+        "y": -4.0
+      },
       "size": {
-        "x": 36,
-        "y": 36
+        "x": 33,
+        "y": 35
       },
       "activation_delay": 1.5,
       "effects": [
@@ -35,6 +42,7 @@
           "timed_trigger": 0.7,
           "sprite": {
             "texture": "explosion_small",
+            "autoplay_id": "effect",
             "animations": [
               {
                 "id": "effect",
@@ -46,13 +54,10 @@
           }
         }
       ],
-      "should_collide_with_platforms": true,
+      "collide_with_platforms": true,
       "sprite": {
         "texture": "mines",
-        "offset": {
-          "x": 0,
-          "y": -6
-        },
+        "autoplay_id": "effect",
         "animations": [
           {
             "id": "effect",
@@ -61,29 +66,25 @@
             "fps": 12,
             "is_looping": true
           }
-        ],
-        "should_autoplay": true
+        ]
       }
     }
   ],
   "collider_size": {
-    "x": 32,
-    "y": 32
+    "x": 33,
+    "y": 35
   },
   "mount_offset": {
     "x": 6,
     "y": -12
   },
   "effect_offset": {
-    "x": 6,
-    "y": -12
+    "x": 32,
+    "y": 6
   },
   "sprite": {
     "texture": "mines",
-    "offset": {
-      "x": 0,
-      "y": -12
-    },
+    "autoplay_id": "idle",
     "animations": [
       {
         "id": "idle",

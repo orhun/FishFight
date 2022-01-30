@@ -19,27 +19,24 @@ use crate::gui::{self, GAME_MENU_RESULT_MAIN_MENU, GAME_MENU_RESULT_QUIT};
 use crate::physics::{debug_draw_physics_bodies, update_physics_bodies};
 use crate::player::{
     draw_weapons_hud, spawn_player, update_player_animations, update_player_camera_box,
-    update_player_controllers, update_player_inventory, update_player_states, PlayerParams,
+    update_player_controllers, update_player_events, update_player_inventory,
+    update_player_passive_effects, update_player_states, PlayerParams,
 };
 use crate::Result;
 use crate::{
-    create_collision_world, debug_draw_animated_sprite_sets, debug_draw_animated_sprites,
-    debug_draw_rigid_bodies, debug_draw_sprite_sets, debug_draw_sprites, draw_animated_sprite_sets,
-    draw_animated_sprites, draw_sprite_sets, draw_sprites, exit_to_main_menu,
-    is_gamepad_btn_pressed, quit_to_desktop, update_animated_sprite_sets, update_animated_sprites,
+    create_collision_world, debug_draw_drawables, debug_draw_rigid_bodies, draw_drawables,
+    exit_to_main_menu, is_gamepad_btn_pressed, quit_to_desktop, update_animated_sprites,
     update_rigid_bodies, Map, MapLayerKind, MapObjectKind, Resources,
 };
 
 pub use input::{collect_local_input, GameInput, GameInputScheme};
 
+use crate::effects::active::debug_draw_active_effects;
 use crate::effects::active::projectiles::update_projectiles;
 use crate::effects::active::triggered::update_triggered_effects;
 use crate::items::spawn_item;
 use crate::map::{spawn_decoration, spawn_sproinger, update_sproingers};
-use crate::particles::{
-    draw_particle_emitter_sets, draw_particle_emitters, update_particle_emitter_sets,
-    update_particle_emitters,
-};
+use crate::particles::{draw_particles, update_particle_emitter_sets, update_particle_emitters};
 pub use music::{start_music, stop_music};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -94,9 +91,10 @@ impl Game {
             .add_system(update_player_camera_box)
             .add_system(update_player_states)
             .add_system(update_player_inventory)
+            .add_system(update_player_passive_effects)
+            .add_system(update_player_events)
             .add_system(update_player_animations)
             .add_system(update_animated_sprites)
-            .add_system(update_animated_sprite_sets)
             .add_system(update_particle_emitters)
             .add_system(update_particle_emitter_sets)
             .build();
@@ -110,23 +108,17 @@ impl Game {
             .build();
 
         let draws = Scheduler::builder()
-            .add_thread_local(draw_sprites)
-            .add_thread_local(draw_sprite_sets)
-            .add_thread_local(draw_animated_sprites)
-            .add_thread_local(draw_animated_sprite_sets)
+            .add_thread_local(draw_drawables)
             .add_thread_local(draw_weapons_hud)
-            .add_thread_local(draw_particle_emitters)
-            .add_thread_local(draw_particle_emitter_sets)
+            .add_thread_local(draw_particles)
             .build();
 
         #[cfg(debug_assertions)]
         let debug_draws = Scheduler::builder()
-            .add_thread_local(debug_draw_sprites)
-            .add_thread_local(debug_draw_sprite_sets)
-            .add_thread_local(debug_draw_animated_sprites)
-            .add_thread_local(debug_draw_animated_sprite_sets)
+            .add_thread_local(debug_draw_drawables)
             .add_thread_local(debug_draw_physics_bodies)
             .add_thread_local(debug_draw_rigid_bodies)
+            .add_thread_local(debug_draw_active_effects)
             .build();
 
         Game {

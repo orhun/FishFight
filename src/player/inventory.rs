@@ -4,11 +4,11 @@ use hecs::{Entity, With, Without, World};
 
 use crate::items::{
     fire_weapon, ItemDepleteBehavior, ItemDropBehavior, Weapon, EFFECT_ANIMATED_SPRITE_ID,
-    GROUND_ANIMATION_ID, SPRITE_ANIMATED_SPRITE_ID,
+    GROUND_ANIMATION_ID, ITEMS_DRAW_ORDER, SPRITE_ANIMATED_SPRITE_ID,
 };
 use crate::particles::ParticleEmitter;
 use crate::player::{PlayerController, PlayerState, IDLE_ANIMATION_ID, PICKUP_GRACE_TIME};
-use crate::{AnimatedSpriteSet, Item, Owner, PhysicsBody, Transform};
+use crate::{Drawable, Item, Owner, PassiveEffectInstance, PhysicsBody, Transform};
 
 const THROW_FORCE: f32 = 5.0;
 
@@ -88,7 +88,8 @@ pub fn update_player_inventory(world: &mut World) {
                     let mut body = world.get_mut::<PhysicsBody>(item_entity).unwrap();
                     body.is_deactivated = true;
 
-                    let mut sprite_set = world.get_mut::<AnimatedSpriteSet>(item_entity).unwrap();
+                    let mut drawable = world.get_mut::<Drawable>(item_entity).unwrap();
+                    let sprite_set = drawable.get_animated_sprite_set_mut().unwrap();
                     sprite_set.set_all(IDLE_ANIMATION_ID, true);
 
                     continue;
@@ -111,19 +112,20 @@ pub fn update_player_inventory(world: &mut World) {
 
                     body.velocity = velocity;
                 } else if state.pickup_grace_timer >= PICKUP_GRACE_TIME {
-                    for (i, &(entity, rect)) in weapon_colliders.iter().enumerate() {
+                    for (i, &(weapon_entity, rect)) in weapon_colliders.iter().enumerate() {
                         if player_rect.overlaps(&rect) {
-                            picked_up.push((entity, entity));
+                            picked_up.push((entity, weapon_entity));
                             weapon_colliders.remove(i);
 
-                            inventory.weapon = Some(entity);
+                            inventory.weapon = Some(weapon_entity);
                             state.pickup_grace_timer = 0.0;
 
-                            let mut body = world.get_mut::<PhysicsBody>(entity).unwrap();
+                            let mut body = world.get_mut::<PhysicsBody>(weapon_entity).unwrap();
                             body.is_deactivated = true;
 
-                            let mut sprite_set =
-                                world.get_mut::<AnimatedSpriteSet>(entity).unwrap();
+                            let mut drawable = world.get_mut::<Drawable>(weapon_entity).unwrap();
+                            let sprite_set = drawable.get_animated_sprite_set_mut().unwrap();
+
                             sprite_set.set_all(IDLE_ANIMATION_ID, true);
 
                             break;
@@ -144,16 +146,19 @@ pub fn update_player_inventory(world: &mut World) {
 
                 weapon_transform.position = weapon_mount;
 
-                let mut sprite_set = world.get_mut::<AnimatedSpriteSet>(weapon_entity).unwrap();
+                let mut drawable = world.get_mut::<Drawable>(weapon_entity).unwrap();
+                let frame_size = {
+                    let sprite_set = drawable.get_animated_sprite_set_mut().unwrap();
 
-                sprite_set.flip_all_x(state.is_facing_left);
-                sprite_set.flip_all_y(state.is_upside_down);
+                    sprite_set.flip_all_x(state.is_facing_left);
+                    sprite_set.flip_all_y(state.is_upside_down);
 
-                let frame_size = sprite_set
-                    .map
-                    .get(SPRITE_ANIMATED_SPRITE_ID)
-                    .map(|sprite| sprite.size())
-                    .unwrap();
+                    sprite_set
+                        .map
+                        .get(SPRITE_ANIMATED_SPRITE_ID)
+                        .map(|sprite| sprite.size())
+                        .unwrap()
+                };
 
                 let mount_offset = flip_offset(
                     weapon.mount_offset,
@@ -204,39 +209,88 @@ pub fn update_player_inventory(world: &mut World) {
                 }
             }
 
-            for &entity in inventory.items.iter() {
-                let mut item = world.get_mut::<Item>(entity).unwrap();
+            let mut i = 0;
+            while i < inventory.items.len() {
+                let item_entity = *inventory.items.get(i).unwrap();
+
+                let mut item = world.get_mut::<Item>(item_entity).unwrap();
 
                 item.duration_timer += get_frame_time();
 
-                let position = transform.position;
+                let mut is_depleted = false;
 
-                match world.get_mut::<AnimatedSpriteSet>(entity) {
-                    Ok(mut sprite_set) => {
-                        sprite_set.flip_all_x(state.is_facing_left);
-                        sprite_set.flip_all_y(state.is_upside_down);
+                if let Some(uses) = item.uses {
+                    is_depleted = item.use_cnt >= uses;
+                }
 
-                        let offset = flip_offset(
-                            item.mount_offset,
-                            sprite_set.size(),
-                            state.is_facing_left,
-                            state.is_upside_down,
-                        );
+                if let Some(duration) = item.duration {
+                    is_depleted = is_depleted || item.duration_timer >= duration;
+                }
 
-                        let mut item_transform = world.get_mut::<Transform>(entity).unwrap();
-                        item_transform.position = position + offset;
+                if is_depleted {
+                    inventory.items.remove(i);
+
+                    state.passive_effects.retain(|effect| {
+                        if let Some(effect_item_entity) = effect.item {
+                            effect_item_entity != item_entity
+                        } else {
+                            true
+                        }
+                    });
+
+                    to_drop.push(item_entity);
+                } else {
+                    let position = transform.position;
+
+                    match world.get_mut::<Drawable>(item_entity) {
+                        Ok(mut drawable) => {
+                            let sprite_set = drawable.get_animated_sprite_set_mut().unwrap();
+
+                            sprite_set.flip_all_x(state.is_facing_left);
+                            sprite_set.flip_all_y(state.is_upside_down);
+
+                            let offset = flip_offset(
+                                item.mount_offset,
+                                sprite_set.size(),
+                                state.is_facing_left,
+                                state.is_upside_down,
+                            );
+
+                            let mut item_transform =
+                                world.get_mut::<Transform>(item_entity).unwrap();
+                            item_transform.position = position + offset;
+                        }
+                        Err(err) => {
+                            #[cfg(debug_assertions)]
+                            println!("WARNING: {}", err);
+                        }
                     }
-                    Err(err) => {
-                        #[cfg(debug_assertions)]
-                        println!("WARNING: {}", err);
-                    }
+
+                    i += 1;
                 }
             }
         }
     }
 
-    for (player, item) in picked_up {
-        world.insert_one(item, Owner(player)).unwrap();
+    for (player_entity, item_entity) in picked_up {
+        world.insert_one(item_entity, Owner(player_entity)).unwrap();
+
+        let player_draw_order = world
+            .get::<Drawable>(player_entity)
+            .map(|drawable| drawable.draw_order)
+            .unwrap();
+
+        let mut drawable = world.get_mut::<Drawable>(item_entity).unwrap();
+        drawable.draw_order = player_draw_order + 1;
+
+        if let Ok(item) = world.get::<Item>(item_entity) {
+            let mut state = world.get_mut::<PlayerState>(player_entity).unwrap();
+
+            for meta in item.effects.clone().into_iter() {
+                let effect_instance = PassiveEffectInstance::new(Some(item_entity), meta);
+                state.passive_effects.push(effect_instance);
+            }
+        }
     }
 
     for entity in to_drop {
@@ -261,10 +315,14 @@ pub fn update_player_inventory(world: &mut World) {
                     item.use_cnt = 0;
                     item.duration_timer = 0.0;
                 }
+                ItemDropBehavior::PersistState => {
+                    if let Some(uses) = item.uses {
+                        should_destroy = item.use_cnt >= uses;
+                    }
+                }
                 ItemDropBehavior::Destroy => {
                     should_destroy = true;
                 }
-                _ => {}
             }
         }
 
@@ -274,11 +332,14 @@ pub fn update_player_inventory(world: &mut World) {
                 println!("WARNING: {}", err);
             }
         } else {
+            let mut drawable = world.get_mut::<Drawable>(entity).unwrap();
+            drawable.draw_order = ITEMS_DRAW_ORDER;
+
             let mut body = world.get_mut::<PhysicsBody>(entity).unwrap();
 
             body.is_deactivated = false;
 
-            let mut sprite_set = world.get_mut::<AnimatedSpriteSet>(entity).unwrap();
+            let sprite_set = drawable.get_animated_sprite_set_mut().unwrap();
 
             sprite_set.restart_all();
 

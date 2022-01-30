@@ -1,12 +1,13 @@
 {
   "id": "machine_gun",
+  "name": "Machine Gun",
   "type": "weapon",
   "cooldown": 0.15,
   "attack_duration": 0.1,
   "recoil": 1.25,
   "uses": 24,
   "mount_offset": {
-    "x": -38,
+    "x": -28,
     "y": -4
   },
   "effect_offset": {
@@ -51,6 +52,7 @@
   },
   "sprite": {
     "texture": "machine_gun",
+    "autoplay_id": "idle",
     "animations": [
       {
         "id": "idle",
