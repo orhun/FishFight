@@ -1,16 +1,18 @@
+use std::borrow::BorrowMut;
+
 use macroquad::{
     experimental::collections::storage,
     prelude::*,
     ui::{self, hash, root_ui, widgets},
 };
-use std::borrow::BorrowMut;
 
 use fishsticks::{Button, GamepadContext};
 
 use super::{draw_main_menu_background, GuiResources, Menu, MenuEntry, MenuResult, Panel};
 
-use crate::input::update_gamepad_context;
-use crate::{is_gamepad_btn_pressed, EditorInputScheme, GameInputScheme, Resources};
+use crate::player::{PlayerControllerKind, PlayerParams};
+use crate::{gui, EditorInputScheme, Map, Resources};
+use core::input::{is_gamepad_btn_pressed, update_gamepad_context, GameInputScheme};
 
 const MENU_WIDTH: f32 = 300.0;
 
@@ -20,12 +22,16 @@ const LOCAL_GAME_MENU_WIDTH: f32 = 400.0;
 const LOCAL_GAME_MENU_HEIGHT: f32 = 200.0;
 
 pub enum MainMenuResult {
-    LocalGame(Vec<GameInputScheme>),
+    LocalGame {
+        map: Box<Map>,
+        players: Vec<PlayerParams>,
+    },
     Editor {
         input_scheme: EditorInputScheme,
         is_new_map: bool,
     },
     ReloadResources,
+    Credits,
     Quit,
 }
 
@@ -33,16 +39,16 @@ pub enum MainMenuResult {
 enum MainMenuState {
     Root(Menu),
     LocalGame,
-    NetworkGame,
     Settings,
     Editor(Menu),
+    Credits,
 }
 
 const ROOT_OPTION_LOCAL_GAME: usize = 0;
-const ROOT_OPTION_NETWORK_GAME: usize = 1;
-const ROOT_OPTION_EDITOR: usize = 2;
-const ROOT_OPTION_SETTINGS: usize = 3;
-const ROOT_OPTION_RELOAD_RESOURCES: usize = 4;
+const ROOT_OPTION_EDITOR: usize = 1;
+const ROOT_OPTION_SETTINGS: usize = 2;
+const ROOT_OPTION_RELOAD_RESOURCES: usize = 3;
+const ROOT_OPTION_CREDITS: usize = 4;
 
 const LOCAL_GAME_OPTION_SUBMIT: usize = 0;
 
@@ -60,12 +66,6 @@ fn build_main_menu() -> Menu {
                 ..Default::default()
             },
             MenuEntry {
-                index: ROOT_OPTION_NETWORK_GAME,
-                title: "Network Game".to_string(),
-                is_disabled: true,
-                ..Default::default()
-            },
-            MenuEntry {
                 index: ROOT_OPTION_EDITOR,
                 title: "Editor".to_string(),
                 ..Default::default()
@@ -76,9 +76,15 @@ fn build_main_menu() -> Menu {
                 is_disabled: true,
                 ..Default::default()
             },
+            #[cfg(debug_assertions)]
             MenuEntry {
                 index: ROOT_OPTION_RELOAD_RESOURCES,
                 title: "Reload Resources".to_string(),
+                ..Default::default()
+            },
+            MenuEntry {
+                index: ROOT_OPTION_CREDITS,
+                title: "Credits".to_string(),
                 ..Default::default()
             },
         ],
@@ -146,6 +152,9 @@ pub async fn show_main_menu() -> MainMenuResult {
                         ROOT_OPTION_RELOAD_RESOURCES => {
                             return MainMenuResult::ReloadResources;
                         }
+                        ROOT_OPTION_CREDITS => {
+                            menu_state = MainMenuState::Credits;
+                        }
                         Menu::CANCEL_INDEX => {
                             return MainMenuResult::Quit;
                         }
@@ -154,10 +163,42 @@ pub async fn show_main_menu() -> MainMenuResult {
                 }
             }
             MainMenuState::LocalGame => {
-                if let Some(res) = local_game_ui(&mut *root_ui(), &mut player_input) {
+                let res = local_game_ui(&mut *root_ui(), &mut player_input);
+                if let Some(res) = res {
                     match res.into_usize() {
                         LOCAL_GAME_OPTION_SUBMIT => {
-                            return MainMenuResult::LocalGame(player_input.clone());
+                            let player_cnt = player_input.len();
+
+                            assert_eq!(
+                                player_cnt, 2,
+                                "Local Game: There should be two player input schemes for this game mode"
+                            );
+
+                            let player_characters =
+                                gui::show_select_characters_menu(&player_input).await;
+
+                            let map_resource = gui::show_select_map_menu().await;
+
+                            let mut players = Vec::new();
+
+                            for (i, &input_scheme) in player_input.iter().enumerate() {
+                                let character = player_characters.get(i).cloned().unwrap();
+
+                                let controller = PlayerControllerKind::LocalInput(input_scheme);
+
+                                let params = PlayerParams {
+                                    index: i as u8,
+                                    controller,
+                                    character,
+                                };
+
+                                players.push(params);
+                            }
+
+                            return MainMenuResult::LocalGame {
+                                map: Box::new(map_resource.map),
+                                players,
+                            };
                         }
                         Menu::CANCEL_INDEX => {
                             menu_state = MainMenuState::Root(build_main_menu());
@@ -165,9 +206,6 @@ pub async fn show_main_menu() -> MainMenuResult {
                         _ => {}
                     }
                 }
-            }
-            MainMenuState::NetworkGame => {
-                unreachable!("Networking is not implemented yet");
             }
             MainMenuState::Editor(menu_instance) => {
                 if let Some(res) = menu_instance.ui(&mut *root_ui()) {
@@ -194,6 +232,9 @@ pub async fn show_main_menu() -> MainMenuResult {
             MainMenuState::Settings => {
                 unreachable!("Settings is not implemented yet");
             }
+            MainMenuState::Credits => {
+                return MainMenuResult::Credits;
+            }
         }
 
         next_frame().await;
@@ -205,8 +246,9 @@ fn local_game_ui(ui: &mut ui::Ui, player_input: &mut Vec<GameInputScheme>) -> Op
         return Some(LOCAL_GAME_OPTION_SUBMIT.into());
     } else {
         let gamepad_context = storage::get::<GamepadContext>();
+
         if is_key_pressed(KeyCode::Escape)
-            || is_gamepad_btn_pressed(Some(&gamepad_context), Button::B)
+            || is_gamepad_btn_pressed(Some(&gamepad_context), Button::East)
         {
             return Some(Menu::CANCEL_INDEX.into());
         }
@@ -271,108 +313,3 @@ fn local_game_ui(ui: &mut ui::Ui, player_input: &mut Vec<GameInputScheme>) -> Op
 
     None
 }
-
-/*
-struct NetworkUiState {
-    input_scheme: GameInputScheme,
-    connection_kind: NetworkConnectionKind,
-    connection: NetworkConnection,
-    custom_relay: bool,
-}
-
-fn network_game_ui(ui: &mut ui::Ui, state: &mut NetworkUiState) -> Option<MainMenuResult> {
-    let mut connection_kind_ui = state.connection_kind as usize;
-
-    widgets::ComboBox::new(hash!(), &["Lan network", "STUN server", "Relay server"])
-        .ratio(0.4)
-        .label("Connection type")
-        .ui(ui, &mut connection_kind_ui);
-
-    match connection_kind_ui {
-        x if x == NetworkConnectionKind::Stun as usize => {
-            state.connection_kind = NetworkConnectionKind::Stun;
-        }
-        x if x == NetworkConnectionKind::Lan as usize => {
-            state.connection_kind = NetworkConnectionKind::Lan;
-        }
-        x if x == NetworkConnectionKind::Relay as usize => {
-            state.connection_kind = NetworkConnectionKind::Relay;
-        }
-        _ => unreachable!(),
-    }
-
-    if state.connection_kind == NetworkConnectionKind::Relay {
-        widgets::Checkbox::new(hash!())
-            .label("Use custom relay server")
-            .ratio(0.4)
-            .ui(ui, &mut state.custom_relay);
-
-        if state.custom_relay {
-            widgets::InputText::new(hash!())
-                .ratio(0.4)
-                .label("Self addr")
-                .ui(ui, &mut state.connection.relay_addr);
-        }
-    }
-
-    let mut self_addr = state.connection.local_addr.clone();
-    widgets::InputText::new(hash!())
-        .ratio(0.4)
-        .label("Self addr")
-        .ui(ui, &mut self_addr);
-
-    widgets::InputText::new(hash!())
-        .ratio(0.4)
-        .label("Opponent addr")
-        .ui(ui, &mut state.connection.opponent_addr);
-
-    state.connection.update(state.connection_kind);
-
-    if ui.button(None, "Probe connection") {
-        state.connection.probe();
-    }
-
-    ui.label(
-        None,
-        &format!("Connection status: {:?}", state.connection.status),
-    );
-
-    if state.connection.status == NetworkConnectionStatus::Connected
-        && ui.button(None, "Connect (A) (Enter)")
-        && state.connection.connect()
-    {
-        return Some(MainMenuResult::NetworkGame {
-            socket: state.connection.socket.take().unwrap(),
-            id: if state.connection.local_addr > state.connection.opponent_addr {
-                0
-            } else {
-                1
-            },
-            input_scheme: state.input_scheme,
-        });
-    }
-
-    ui.label(
-        vec2(430., 310.),
-        &format!("Input: {:?}", state.input_scheme),
-    );
-
-    ui.label(vec2(360., 330.), "Press V/L/Start to change");
-    if is_key_pressed(KeyCode::V) {
-        state.input_scheme = GameInputScheme::KeyboardLeft;
-    }
-
-    if is_key_pressed(KeyCode::L) {
-        state.input_scheme = GameInputScheme::KeyboardRight;
-    }
-
-    let gamepad_system = storage::get_mut::<GamepadContext>();
-    for (ix, gamepad) in gamepad_system.gamepads() {
-        if gamepad.digital_inputs.activated(fishsticks::Button::Start) {
-            state.input_scheme = GameInputScheme::Gamepad(ix);
-        }
-    }
-
-    None
-}
-*/

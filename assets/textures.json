@@ -1,5 +1,41 @@
 [
   {
+    "id": "yellow_board_upper_lh_corner",
+    "path": "ui/Wood and Paper UI/Yellow Board/1.png"
+  },
+  {
+    "id": "yellow_board_top",
+    "path": "ui/Wood and Paper UI/Yellow Board/2.png"
+  },
+  {
+    "id": "yellow_board_upper_rh_corner",
+    "path": "ui/Wood and Paper UI/Yellow Board/3.png"
+  },
+  {
+    "id": "yellow_board_lh_side",
+    "path": "ui/Wood and Paper UI/Yellow Board/4.png"
+  },
+  {
+    "id": "yellow_board_bg",
+    "path": "ui/Wood and Paper UI/Yellow Board/5.png"
+  },
+  {
+    "id": "yellow_board_rh_side",
+    "path": "ui/Wood and Paper UI/Yellow Board/6.png"
+  },
+  {
+    "id": "yellow_board_lower_lh_corner",
+    "path": "ui/Wood and Paper UI/Yellow Board/7.png"
+  },
+  {
+    "id": "yellow_board_bottom",
+    "path": "ui/Wood and Paper UI/Yellow Board/8.png"
+  },
+  {
+    "id": "yellow_board_lower_rh_corner",
+    "path": "ui/Wood and Paper UI/Yellow Board/9.png"
+  },
+  {
     "id": "default_tool_icon",
     "path": "textures/ui/editor_icons/no_icon.png",
     "sprite_size": {
@@ -89,8 +125,8 @@
     }
   },
   {
-    "id": "default_decorations",
-    "path": "textures/map/default_decorations.png",
+    "id": "default_decoration",
+    "path": "textures/map/default_decoration.png",
     "type": "tileset",
     "sprite_size": {
       "x": 48,
@@ -123,7 +159,7 @@
   },
   {
     "id": "player_sharky",
-    "path": "textures/player/PlayerSharky(64x64).png",
+    "path": "textures/player/PlayerSharky(96x80).png",
     "type": "spritesheet",
     "sprite_size": {
       "x": 96,
@@ -132,7 +168,7 @@
   },
   {
     "id": "player_pescy",
-    "path": "textures/player/PlayerPescy(64x64).png",
+    "path": "textures/player/PlayerPescy(96x80).png",
     "type": "spritesheet",
     "sprite_size": {
       "x": 96,
@@ -141,7 +177,7 @@
   },
   {
     "id": "player_fishy",
-    "path": "textures/player/PlayerFishy(64x64).png",
+    "path": "textures/player/PlayerFishy(96x80).png",
     "type": "spritesheet",
     "sprite_size": {
       "x": 96,
@@ -150,11 +186,74 @@
   },
   {
     "id": "player_orcy",
-    "path": "textures/player/PlayerOrcy(64x64).png",
+    "path": "textures/player/PlayerOrcy(96x80).png",
     "type": "spritesheet",
     "sprite_size": {
       "x": 96,
       "y": 80
+    }
+  },
+  {
+    "id": "pirate_hat",
+    "path": "textures/items/hats/pirate hat.png",
+    "type": "spritesheet",
+    "sprite_size": {
+      "x": 51,
+      "y": 29
+    }
+  },
+  {
+    "id": "bonnet_hat",
+    "path": "textures/items/hats/bonnet hat.png",
+    "type": "spritesheet",
+    "sprite_size": {
+      "x": 35,
+      "y": 25
+    }
+  },
+  {
+    "id": "bucket_hat",
+    "path": "textures/items/hats/bucket hat.png",
+    "type": "spritesheet",
+    "sprite_size": {
+      "x": 34,
+      "y": 33
+    }
+  },
+  {
+    "id": "chefs_hat",
+    "path": "textures/items/hats/chef's hat.png",
+    "type": "spritesheet",
+    "sprite_size": {
+      "x": 35,
+      "y": 28
+    }
+  },
+  {
+    "id": "chest_hat",
+    "path": "textures/items/hats/chest hat.png",
+    "type": "spritesheet",
+    "sprite_size": {
+      "x": 36,
+      "y": 31
+    }
+  },
+  {
+    "id": "cowboy_hat",
+    "path": "textures/items/hats/cowboy hat.png",
+    "type": "spritesheet",
+    "sprite_size": {
+      "x": 49,
+      "y": 25
+    }
+  },
+  {
+    "id": "crown_hat",
+    "path": "textures/items/hats/crown hat.png",
+    "type": "spritesheet",
+    "sprite_size": {
+      "x": 32,
+      "y": 28
     }
   },
   {
@@ -240,11 +339,11 @@
   },
   {
     "id": "kick_bomb",
-    "path": "textures/items/KickBomb(32x48).png",
+    "path": "textures/items/KickBomb(32x64).png",
     "type": "spritesheet",
     "sprite_size": {
       "x": 32,
-      "y": 48
+      "y": 64
     }
   },
   {
@@ -258,11 +357,11 @@
   },
   {
     "id": "mines",
-    "path": "textures/items/Mines(48x48).png",
+    "path": "textures/items/Mines(33x35).png",
     "type": "spritesheet",
     "sprite_size": {
-      "x": 48,
-      "y": 48
+      "x": 33,
+      "y": 35
     }
   },
   {
@@ -374,7 +473,31 @@
     "path": "textures/items/MachineGunBullet(7x4).png"
   },
   {
-    "id": "small_explosions",
-    "path": "textures/explosions/Small.png"
+    "id": "sniper_rifle_bullet",
+    "path": "textures/items/SniperRifleBullet(7x7).png"
+  },
+  {
+    "id": "explosion_small",
+    "path": "textures/explosions/Small(112x80).png",
+    "sprite_size": {
+      "x": 112,
+      "y": 80
+    }
+  },
+  {
+    "id": "explosion_medium",
+    "path": "textures/explosions/Medium(144x112).png",
+    "sprite_size": {
+      "x": 144,
+      "y": 112
+    }
+  },
+  {
+    "id": "explosion_big",
+    "path": "textures/explosions/Big(176x144).png",
+    "sprite_size": {
+      "x": 176,
+      "y": 144
+    }
   }
 ]

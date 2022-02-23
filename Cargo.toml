@@ -1,33 +1,34 @@
 [package]
 name = "fishfight"
-version = "0.3.0"
-authors = ["Fedor Logachev <not.fl3@gmail.com>"]
-edition = "2018"
+version = "0.4.1"
+description = "A tactical 2D shooter"
+authors = ["Fish Fight Contributors"]
+license = "MIT OR Apache-2.0"
+edition = "2021"
+
+[target.'cfg(target_arch = "wasm32")'.lib]
+crate-type = ["cdylib"]
+
+[features]
+default = []
+
+[workspace]
+members = ["core"]
 
 [profile.dev.package."*"]
 opt-level = 3
 
 [dependencies]
+core = { path = "./core", package = "fishfight-core" }
+# ultimate = { path = "../FishFight-ultimate", package = "fishfight-ultimate", optional = true }
+ff-particles = { version = "0.1", features = ["serde"] }
+fishsticks = { git = "https://github.com/fishfight/fishsticks", default-features = false, features = ["gilrs"] }
 macroquad = { version = "0.3.10" }
 macroquad-platformer = "0.1"
-macroquad-profiler = "0.1"
-
-ff-particles = { version = "0.1", features = ["serde"] }
-
-fishsticks = { version = "0.2.0", features = ["bundled-sdl2"] }
-
-stunclient = { git = "https://github.com/not-fl3/rust-stunclient", default-features = false }
-
+hecs = "0.7.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-#[patch.crates-io]
-#macroquad = { git = "https://github.com/not-fl3/macroquad" }
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2.74"
 
-#miniquad = { path = "../miniquad" }
-
-#macroquad = { path = "../macroquad" }
-#macroquad-particles = { path = "../macroquad/particles" }
-#macroquad-tiled = { path = "../macroquad/tiled" }
-#macroquad-platformer = { path = "../macroquad/physics-platformer" }
-#macroquad-profiler = { path = "../macroquad/profiler" }

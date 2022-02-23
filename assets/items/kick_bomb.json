@@ -1,25 +1,42 @@
 {
   "id": "kick_bomb",
-  "sprite": {
-    "texture": "kick_bomb"
-  },
+  "name": "Kick Bomb",
   "type": "weapon",
   "uses": 1,
-  "is_destroyed_on_depletion": true,
+  "deplete_behavior": "destroy",
   "effects": [
     {
       "type": "triggered_effect",
-      "trigger": "all_except_ground",
+      "trigger": [
+        "player",
+        "enemy",
+        "explosion",
+        "projectile"
+      ],
       "velocity": {
-        "x": 250.0,
-        "y": -125.0
+        "x": 7.0,
+        "y": -2.0
       },
+      "rotation": 90.0,
+      "can_rotate": true,
+      "collide_with_platforms": true,
       "size": {
-        "x": 24,
-        "y": 24
+        "x": 26,
+        "y": 23
       },
       "is_kickable": true,
       "timed_trigger": 1.5,
+      "particles": [
+        {
+          "particle_effect": "kick_bomb_smoke",
+          "interval": 0.04,
+          "should_autostart": true,
+          "offset": {
+            "x": 0,
+            "y": -16
+          }
+        }
+      ],
       "effects": [
         {
           "type": "circle_collider",
@@ -27,30 +44,51 @@
           "is_explosion": true,
           "particle_effect": "hit",
           "sound_effect": "explode"
+        },
+        {
+          "type": "triggered_effect",
+          "size": {
+            "x": 112,
+            "y": 80
+          },
+          "collide_with_platforms": true,
+          "timed_trigger": 0.7,
+          "sprite": {
+            "texture": "explosion_small",
+            "autoplay_id": "effect",
+            "animations": [
+              {
+                "id": "effect",
+                "row": 0,
+                "frames": 12,
+                "fps": 24
+              }
+            ]
+          }
         }
       ],
-      "animation": {
+      "sprite": {
         "texture": "kick_bomb",
+        "autoplay_id": "effect",
         "offset": {
           "x": 0,
-          "y": -24
+          "y": 0
         },
         "animations": [
           {
-            "id": "armed",
+            "id": "effect",
             "row": 1,
             "frames": 3,
             "fps": 12,
             "is_looping": true
           }
-        ],
-        "should_autoplay": true
+        ]
       }
     }
   ],
   "collider_size": {
     "x": 32,
-    "y": 48
+    "y": 45
   },
   "mount_offset": {
     "x": 0,
@@ -60,8 +98,9 @@
     "x": 0,
     "y": 24
   },
-  "animation": {
+  "sprite": {
     "texture": "kick_bomb",
+    "autoplay_id": "idle",
     "animations": [
       {
         "id": "idle",

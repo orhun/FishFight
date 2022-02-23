@@ -6,14 +6,15 @@ use macroquad::{
     ui::{hash, root_ui, widgets},
 };
 
+use core::Result;
+
 use super::{GuiResources, Panel};
 
 use crate::gui::draw_main_menu_background;
-use crate::{
-    is_gamepad_btn_pressed,
-    resources::{map_name_to_filename, MapResource, Resources},
-    GamepadContext, Result,
+use crate::resources::{
+    map_name_to_filename, MapResource, Resources, MAP_EXPORTS_DEFAULT_DIR, MAP_EXPORTS_EXTENSION,
 };
+use core::input::{is_gamepad_btn_pressed, GamepadContext};
 
 enum WindowState {
     None,
@@ -44,7 +45,7 @@ pub async fn show_create_map_menu() -> Result<Option<MapResource>> {
 
     let map_export_path = {
         let resources = storage::get::<Resources>();
-        Path::new(&resources.assets_dir).join(Resources::MAP_EXPORTS_DEFAULT_DIR)
+        Path::new(&resources.assets_dir).join(MAP_EXPORTS_DEFAULT_DIR)
     };
 
     let mut gamepad_system = storage::get_mut::<GamepadContext>();
@@ -71,7 +72,7 @@ pub async fn show_create_map_menu() -> Result<Option<MapResource>> {
                 {
                     let path_label = map_export_path
                         .join(map_name_to_filename(&name))
-                        .with_extension(Resources::MAP_EXPORTS_EXTENSION);
+                        .with_extension(MAP_EXPORTS_EXTENSION);
 
                     widgets::Label::new(path_label.to_string_lossy().as_ref()).ui(ui);
                 }
@@ -125,7 +126,9 @@ pub async fn show_create_map_menu() -> Result<Option<MapResource>> {
                 ui.separator();
                 ui.separator();
 
-                let btn_a = is_gamepad_btn_pressed(Some(&gamepad_system), fishsticks::Button::A);
+                let btn_a =
+                    is_gamepad_btn_pressed(Some(&gamepad_system), fishsticks::Button::South);
+
                 let enter = is_key_pressed(KeyCode::Enter);
 
                 if ui.button(None, "Confirm") || btn_a || enter {
@@ -151,7 +154,8 @@ pub async fn show_create_map_menu() -> Result<Option<MapResource>> {
 
                 ui.same_line(0.0);
 
-                let btn_b = is_gamepad_btn_pressed(Some(&gamepad_system), fishsticks::Button::B);
+                let btn_b = is_gamepad_btn_pressed(Some(&gamepad_system), fishsticks::Button::East);
+
                 let escape = is_key_pressed(KeyCode::Escape);
 
                 if ui.button(None, "Cancel") || btn_b || escape {

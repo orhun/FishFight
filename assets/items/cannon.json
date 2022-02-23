@@ -1,23 +1,26 @@
 {
   "id": "cannon",
-  "sprite": {
-    "texture": "cannon",
-    "offset": {
-      "x": 0,
-      "y": -22
-    }
-  },
+  "name": "Cannon",
   "type": "weapon",
-  "cooldown": 0.5,
-  "recoil": 400.0,
+  "cooldown": 1.5,
+  "attack_duration": 1.0,
+  "recoil": 4.0,
   "uses": 3,
   "mount_offset": {
-    "x": -16,
+    "x": -28,
     "y": -26
   },
   "effect_offset": {
-    "x": 36,
-    "y": 12
+    "x": 50,
+    "y": 28
+  },
+  "collider_size": {
+    "x": 64,
+    "y": 24
+  },
+  "collider_offset": {
+    "x": 0,
+    "y": 20
   },
   "sound_effect": "shoot",
   "effects": [
@@ -28,9 +31,10 @@
         "ground",
         "explosion"
       ],
+      "gravity": 0.5,
       "velocity": {
-        "x": 1000.0,
-        "y": -50.0
+        "x": 20.0,
+        "y": -2
       },
       "size": {
         "x": 17,
@@ -40,33 +44,58 @@
       "effects": [
         {
           "type": "circle_collider",
-          "radius": 64,
+          "radius": 80,
           "is_explosion": true,
           "particle_effect": "hit",
           "sound_effect": "explode"
+        },
+        {
+          "type": "triggered_effect",
+          "size": {
+            "x": 176,
+            "y": 144
+          },
+          "collide_with_platforms": true,
+          "timed_trigger": 0.7,
+          "sprite": {
+            "texture": "explosion_big",
+            "autoplay_id": "effect",
+            "animations": [
+              {
+                "id": "effect",
+                "row": 0,
+                "frames": 12,
+                "fps": 24
+              }
+            ]
+          }
         }
       ],
-      "animation": {
+      "sprite": {
         "texture": "cannon_ball",
+        "autoplay_id": "effect",
         "animations": [
           {
-            "id": "armed",
+            "id": "effect",
             "row": 0,
             "frames": 1,
             "fps": 1,
             "is_looping": true
           }
-        ],
-        "should_autoplay": true
-      }
+        ]
+      },
+      "particles": [
+        {
+          "particle_effect": "cannon_cannonball_smoke",
+          "interval": 0.04,
+          "delay": 0.04
+        }
+      ]
     }
   ],
-  "collider_size": {
-    "x": 64,
-    "y": 24
-  },
-  "animation": {
+  "sprite": {
     "texture": "cannon",
+    "autoplay_id": "idle",
     "animations": [
       {
         "id": "idle",
@@ -79,20 +108,18 @@
         "id": "attack",
         "row": 0,
         "frames": 4,
-        "fps": 8,
-        "is_looping": true
+        "fps": 8
       }
     ]
   },
-  "effect_animation": {
+  "effect_sprite": {
     "texture": "cannon",
     "animations": [
       {
-        "id": "attack_effect",
+        "id": "attack",
         "row": 1,
         "frames": 5,
-        "fps": 12,
-        "is_looping": true
+        "fps": 12
       }
     ]
   }

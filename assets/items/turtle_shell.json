@@ -1,37 +1,49 @@
 {
   "id": "turtle_shell",
-  "type": "equipped_item",
-  "sprite": {
-    "texture": "turtle_shell"
-  },
+  "name": "Turtle Shell",
+  "type": "item",
+  "uses": 3,
   "collider_size": {
     "x": 32,
     "y": 32
   },
   "effects": [
     {
-      "id": "turtle_shell",
-      "events": "receive_damage",
-      "uses": 3,
+      "name": "Turtle Shell",
+      "function_id": "turtle_shell",
+      "activated_on": [
+        "receive_damage"
+      ],
       "blocks_damage": true
     }
   ],
-  "animation": {
+  "sprite": {
     "texture": "turtle_shell",
+    "autoplay_id": "ground",
     "animations": [
       {
-        "id": "idle",
-        "row": 1,
+        "id": "ground",
+        "row": 0,
         "frames": 1,
-        "fps": 1,
-        "is_looping": true
+        "fps": 1
       },
       {
-        "id": "broken",
-        "row": 1,
+        "id": "ground_broken",
+        "row": 0,
         "frames": 1,
-        "fps": 1,
-        "is_looping": true
+        "fps": 1
+      },
+      {
+        "id": "idle",
+        "row": 2,
+        "frames": 1,
+        "fps": 1
+      },
+      {
+        "id": "idle_broken",
+        "row": 3,
+        "frames": 1,
+        "fps": 1
       }
     ]
   },
@@ -39,6 +51,6 @@
     "x": -32,
     "y": 18
   },
-  "is_dropped_on_death": true,
-  "is_network_ready": true
+  "drop_behavior": "persist_state",
+  "deplete_behavior": "destroy"
 }

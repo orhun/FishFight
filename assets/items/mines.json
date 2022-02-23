@@ -1,23 +1,28 @@
 {
   "id": "mines",
-  "sprite": {
-    "texture": "mines",
-    "offset": {
-      "x": 0,
-      "y": -12
-    }
-  },
+  "name": "Mines",
   "type": "weapon",
   "cooldown": 0.5,
   "uses": 3,
-  "is_destroyed_on_depletion": true,
+  "deplete_behavior": "destroy",
   "effects": [
     {
       "type": "triggered_effect",
-      "trigger": "all_except_ground",
+      "trigger": [
+        "player",
+        "enemy",
+        "explosion",
+        "projectile"
+      ],
+      "can_rotate": true,
+      "rotation": 300.0,
+      "velocity": {
+        "x": 2.0,
+        "y": -4.0
+      },
       "size": {
-        "x": 36,
-        "y": 36
+        "x": 33,
+        "y": 35
       },
       "activation_delay": 1.5,
       "effects": [
@@ -27,46 +32,60 @@
           "is_explosion": true,
           "particle_effect": "hit",
           "sound_effect": "explode"
+        },
+        {
+          "type": "triggered_effect",
+          "size": {
+            "x": 112,
+            "y": 80
+          },
+          "collide_with_platforms": true,
+          "timed_trigger": 0.7,
+          "sprite": {
+            "texture": "explosion_small",
+            "autoplay_id": "effect",
+            "animations": [
+              {
+                "id": "effect",
+                "row": 0,
+                "frames": 12,
+                "fps": 24
+              }
+            ]
+          }
         }
       ],
-      "should_collide_with_platforms": true,
-      "animation": {
+      "collide_with_platforms": true,
+      "sprite": {
         "texture": "mines",
-        "offset": {
-          "x": 0,
-          "y": -12
-        },
+        "autoplay_id": "effect",
         "animations": [
           {
-            "id": "armed",
+            "id": "effect",
             "row": 0,
             "frames": 13,
             "fps": 12,
             "is_looping": true
           }
-        ],
-        "should_autoplay": true
+        ]
       }
     }
   ],
   "collider_size": {
-    "x": 32,
-    "y": 32
+    "x": 33,
+    "y": 35
   },
   "mount_offset": {
     "x": 6,
     "y": -12
   },
   "effect_offset": {
-    "x": 6,
-    "y": -12
+    "x": 32,
+    "y": 6
   },
-  "animation": {
+  "sprite": {
     "texture": "mines",
-    "offset": {
-      "x": 0,
-      "y": -12
-    },
+    "autoplay_id": "idle",
     "animations": [
       {
         "id": "idle",

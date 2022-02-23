@@ -1,7 +1,8 @@
 # Fish Fight
 
-[![Github Actions](https://github.com/fishfight/fish2/workflows/Compilation%20check/badge.svg)](https://github.com/fishfight/fish2/actions?query=workflow%3A)
-![fish-scene](https://user-images.githubusercontent.com/583842/132137745-ee1f4565-bd75-4d56-b040-234a259ed2b7.gif)
+[![Build Status](https://img.shields.io/github/workflow/status/fishfight/FishFight/Compilation%20check?logo=github&labelColor=1e1c24&color=8bcfcf)](https://github.com/fishfight/FishFight/actions) [![Documentation](https://img.shields.io/badge/documentation-fishfight.github.io-green.svg?labelColor=1e1c24&color=f3ee7a)](https://fishfight.github.io/FishFight/) [![License](https://img.shields.io/badge/License-MIT%20or%20Apache%202-green.svg?label=license&labelColor=1e1c24&color=34925e)](./LICENSE) [![Discord](https://img.shields.io/badge/chat-on%20discord-green.svg?logo=discord&logoColor=fff&labelColor=1e1c24&color=8d5b3f)](https://discord.gg/4smxjcheE5)
+
+![Fish Fight Preview](https://user-images.githubusercontent.com/24392180/151969075-399e9fea-e2de-4340-96a4-0a0e5b79c281.gif)
 
 ## Introduction
 
@@ -34,32 +35,56 @@ Before committing and opening a PR, please run the following commands and follow
 2. `cargo fmt`
 
 ### Learning Materials
-- https://macroquad.rs/tutorials/fish-tutorial/
-- https://not-fl3.github.io/platformer-book/intro.html
-- https://sokoban.iolivia.me/ (we do not use an ECS)
+- https://fishfight.github.io/FishFight/
+- https://macroquad.rs/tutorials/fish-tutorial/ (outdated)
+- https://not-fl3.github.io/platformer-book/intro.html (wip)
+- https://cleancut.github.io/rusty_engine/
+- https://sokoban.iolivia.me/
 - https://pragprog.com/titles/hwrust/hands-on-rust/
 
-## Install & play
+## Download & play
 
-1. Install Rust with [Rustup.rs](https://rustup.rs/)
-2. Install [Cmake](https://cmake.org/download/)
+1. Download the latest version from the [releases](https://github.com/fishfight/FishFight/releases) page.
+2. Extract the archive and run the executable. (e.g. `./fishfight` or `fishfight.exe`)
+
+### Launcher
+
+[A cross-platform launcher](https://github.com/fishfight/Launcher) is also available for downloading and launching the game easily.
+
+### Distro Packages
+
+<details>
+  <summary>Packaging status</summary>
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/fishfight.svg)](https://repology.org/project/fishfight/versions)
+
+</details>
+
+#### Arch Linux
+
+```sh
+pacman -S fishfight
+```
+
+## Building
+
+1. Install Rust with [rustup.rs](https://rustup.rs/)
+2. Clone this repository: `git clone https://github.com/fishfight/FishFight.git`
 3. `cargo run`
-
-We'll start distributing executables shortly!
 
 ## Default key bindings
 
-Keyboard left:
+Keyboard right:
 - movement: arrow keys `↑`, `←`, `↓`, `→`
 - pick/drop: `K`
 - attack: `L`
-- toggle AI: `0`
+- slide: `↓` + `RightCtrl`
 
-Keyboard right:
+Keyboard left:
 - movement: `W`, `A`, `S`, `D` (& `Space` for jump)
 - pick/drop: `C`
 - attack: `V` & `LeftCtrl`
-- toogle AI: `1`
+- slide: `A` + `F`
 
 Gamepad:
 - movement: direction axis
@@ -70,4 +95,5 @@ Gamepad:
 
 ## Credits
 
+- [FishFight Credits](./CREDITS.md)
 - Input Icons: [Kadith's Icons](https://kadith.itch.io/kadiths-free-icons) by Kadith

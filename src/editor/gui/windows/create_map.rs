@@ -1,15 +1,17 @@
+use std::path::Path;
+
 use macroquad::{
     experimental::collections::storage,
     prelude::*,
     ui::{hash, widgets, Ui},
 };
-use std::path::Path;
 
-use crate::map::Map;
+use core::text::ToStringHelper;
 
 use super::{ButtonParams, EditorAction, EditorContext, Window, WindowParams};
-use crate::resources::map_name_to_filename;
-use crate::text::ToStringHelper;
+
+use crate::map::Map;
+use crate::resources::{map_name_to_filename, MAP_EXPORTS_DEFAULT_DIR, MAP_EXPORTS_EXTENSION};
 use crate::Resources;
 
 pub struct CreateMapWindow {
@@ -31,7 +33,7 @@ impl CreateMapWindow {
 
         let map_export_path = {
             let resources = storage::get::<Resources>();
-            Path::new(&resources.assets_dir).join(Resources::MAP_EXPORTS_DEFAULT_DIR)
+            Path::new(&resources.assets_dir).join(MAP_EXPORTS_DEFAULT_DIR)
         };
 
         CreateMapWindow {
@@ -75,7 +77,7 @@ impl Window for CreateMapWindow {
         {
             let path_label = Path::new(&self.map_export_path)
                 .join(map_name_to_filename(&self.name))
-                .with_extension(Resources::MAP_EXPORTS_EXTENSION);
+                .with_extension(MAP_EXPORTS_EXTENSION);
 
             widgets::Label::new(path_label.to_string_lossy().as_ref()).ui(ui);
         }
