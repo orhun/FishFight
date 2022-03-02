@@ -16,7 +16,7 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-          target: x86_64-pc-windows-msvc
+          target: i686-pc-windows-msvc
 
       - name: Create project and build
         shell: bash
@@ -24,4 +24,4 @@ jobs:
           cargo new --bin testproject
           cd testproject/
           echo 'ff-particles = "0.1.2"' >> Cargo.toml
-          cargo build --target x86_64-pc-windows-msvc
+          cargo build --target i686-pc-windows-msvc
