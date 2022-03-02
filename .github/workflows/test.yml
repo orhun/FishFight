@@ -24,4 +24,5 @@ jobs:
           cargo new --bin fishfight
           cd fishfight/
           curl https://raw.githubusercontent.com/fishfight/FishFight/main/Cargo.toml > Cargo.toml
+          sed -i "s|core\s=\s.*$||;s|\[workspace\]||;s|members\s=.*$||" Cargo.toml
           cargo build --target i686-pc-windows-msvc
