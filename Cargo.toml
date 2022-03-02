@@ -21,7 +21,7 @@ opt-level = 3
 [dependencies]
 core = { path = "./core", package = "fishfight-core" }
 # ultimate = { path = "../FishFight-ultimate", package = "fishfight-ultimate", optional = true }
-ff-particles = { version = "0.1", features = ["serde"] }
+ff-particles = { git = "https://github.com/fishfight/ff-particles", features = ["serde"] }
 fishsticks = { git = "https://github.com/fishfight/fishsticks", default-features = false, features = ["gilrs"] }
 macroquad = { version = "0.3.15" }
 macroquad-platformer = "0.1"

@@ -167,8 +167,7 @@ checksum = "212d0f5754cb6769937f4501cc0e67f4f4483c8d2c3e1e922ee9edbe4ab4c7c0"
 [[package]]
 name = "ff-particles"
 version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "456005c433b73c5268369b27894cd5fa94a0abb3e0489540152383849f1045c0"
+source = "git+https://github.com/fishfight/ff-particles#b5afe42990f7954a970e894368534af3734a0052"
 dependencies = [
  "macroquad",
  "serde",
