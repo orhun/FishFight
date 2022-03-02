@@ -89,4 +89,4 @@ jobs:
           profile: minimal
           target: ${{ matrix.config.target }}
       - name: Build
-        run: cargo build --locked --target ${{ matrix.config.target }} ${{ matrix.profile }}
+        run: cargo build -vv --locked --target ${{ matrix.config.target }} ${{ matrix.profile }}
