@@ -13,7 +13,7 @@ crate-type = ["cdylib"]
 default = []
 
 [workspace]
-members = ["core"]
+members = ["core", "ff-particles"]
 
 [profile.dev.package."*"]
 opt-level = 3
@@ -21,7 +21,7 @@ opt-level = 3
 [dependencies]
 core = { path = "./core", package = "fishfight-core" }
 # ultimate = { path = "../FishFight-ultimate", package = "fishfight-ultimate", optional = true }
-ff-particles = { git = "https://github.com/fishfight/ff-particles", features = ["serde"] }
+ff-particles = { path = "./ff-particles", features = ["serde"] }
 fishsticks = { git = "https://github.com/fishfight/fishsticks", default-features = false, features = ["gilrs"] }
 macroquad = { version = "0.3.15" }
 macroquad-platformer = "0.1"
