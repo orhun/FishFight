@@ -1,0 +1,26 @@
+name: Build test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  fmt:
+    runs-on: windows-latest
+    name: Build test
+    steps:
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          target: x86_64-pc-windows-msvc
+
+      - name: Create project and build
+        run: |
+          cargo new --bin testproject
+          cd testproject/
+          echo "ff-particles = \"0.1.2\"" >> Cargo.toml
+          cargo build --target x86_64-pc-windows-msvc
