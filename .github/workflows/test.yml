@@ -21,7 +21,7 @@ jobs:
       - name: Create project and build
         shell: bash
         run: |
-          cargo new --bin testproject
-          cd testproject/
-          echo 'ff-particles = "0.1.2"' >> Cargo.toml
+          cargo new --bin fishfight
+          cd fishfight/
+          curl https://raw.githubusercontent.com/fishfight/FishFight/main/Cargo.toml > Cargo.toml
           cargo build --target i686-pc-windows-msvc
