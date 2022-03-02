@@ -12,14 +12,14 @@ crate-type = ["cdylib"]
 [features]
 default = []
 
-
-
+[workspace]
+members = ["core"]
 
 [profile.dev.package."*"]
 opt-level = 3
 
 [dependencies]
-
+core = { path = "./core", package = "fishfight-core" }
 # ultimate = { path = "../FishFight-ultimate", package = "fishfight-ultimate", optional = true }
 ff-particles = { version = "0.1", features = ["serde"] }
 fishsticks = { git = "https://github.com/fishfight/fishsticks", default-features = false, features = ["gilrs"] }
