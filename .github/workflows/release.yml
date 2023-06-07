@@ -55,6 +55,7 @@ jobs:
       matrix:
         config:
           - { os: ubuntu-latest, target: "x86_64-unknown-linux-gnu" }
+          - { os: ubuntu-latest, target: "aarch64-unknown-linux-gnu" }
           - { os: macos-latest, target: "x86_64-apple-darwin" }
           - { os: macos-latest, target: "aarch64-apple-darwin" }
           - { os: windows-latest, target: "x86_64-pc-windows-msvc" }
@@ -88,10 +89,7 @@ jobs:
           target: ${{ matrix.config.target }}
 
       - name: 🔨 Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --locked --target ${{ matrix.config.target }}
+        run: WGPU_BACKEND=gl cargo build --release --locked --target ${{ matrix.config.target }}
 
       - name: ⚙️ Prepare artifacts [Windows]
         shell: bash
